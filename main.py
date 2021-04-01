@@ -3,6 +3,7 @@
 import argparse
 
 from torch import optim
+from torchvision.transforms.transforms import Lambda
 from datasets import get_dataset
 import logging
 import sys
@@ -14,6 +15,7 @@ from tensorboardX import SummaryWriter
 from trainer import Trainer
 from models import get_network
 from datasets import get_dataset
+from attacks import PGD
 
 
 def get_args():
@@ -35,6 +37,7 @@ def get_args():
     parser.add_argument("--pgd-alpha", default=2, type=float)
     parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--fname", default="cifar_model", type=str)
+    parser.add_argument("--checkpoints", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
 
     parser.add_argument("--resume", default=0, type=int)
@@ -51,6 +54,8 @@ def main():
 
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
+    if not os.path.exists(args.checkpoints):
+        os.makedirs(args.checkpoints)
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         format="[%(asctime)s] - %(message)s",
@@ -70,8 +75,11 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    model = get_network(args).cuda()
     dataset = get_dataset(args)
+
+    args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
+    args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
+    model = get_network(args).cuda()
 
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
@@ -80,6 +88,8 @@ def main():
         opt, milestones=[75, 90], gamma=0.1
     )
 
+    attack = PGD(args, model=model)
+
     trainer = Trainer(
         args=args,
         model=model,
@@ -87,7 +97,7 @@ def main():
         logger=logger,
         optimizer=opt,
         scheduler=scheduler,
-        attack=None,
+        attack=attack,
         writer=writer,
     )
     trainer.train()

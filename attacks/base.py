@@ -5,5 +5,5 @@ from abc import ABCMeta, abstractmethod
 
 class Attack(metaclass=ABCMeta):
     @abstractmethod
-    def perturbe(self):
+    def perturb(self):
         pass
