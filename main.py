@@ -3,8 +3,6 @@
 import argparse
 
 from torch import optim
-from torchvision.transforms.transforms import Lambda
-from datasets import get_dataset
 import logging
 import sys
 import os
