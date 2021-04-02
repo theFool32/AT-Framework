@@ -22,4 +22,4 @@ def get_network(args):
     # TODO: ugly
     # device
     # parallel
-    return ModelWrap(globals()[args.model](), args.mean, args.std)
+    return ModelWrap(globals()[args.model](), args.mean, args.std).cuda()

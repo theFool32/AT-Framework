@@ -16,6 +16,7 @@ from trainer import Trainer
 from models import get_network
 from datasets import get_dataset
 from attacks import PGD
+from utils import git_version
 
 
 def get_args():
@@ -69,6 +70,7 @@ def main():
         ],
     )
     logger.info(args)
+    logger.info(git_version())
     writer = SummaryWriter(args.fname)
 
     np.random.seed(args.seed)
@@ -79,7 +81,7 @@ def main():
 
     args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
     args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
-    model = get_network(args).cuda()
+    model = get_network(args)
 
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
