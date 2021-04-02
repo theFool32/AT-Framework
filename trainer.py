@@ -82,7 +82,6 @@ class Trainer:
         self.writer.add_scalar("train/nat_acc", nat_acc_meter.avg, global_step=epoch)
         self.writer.add_scalar("train/adv_loss", adv_loss_meter.avg, global_step=epoch)
         self.writer.add_scalar("train/adv_acc", adv_acc_meter.avg, global_step=epoch)
-        self.test(epoch)
 
     def train(self):
         self.model.train()
@@ -90,6 +89,7 @@ class Trainer:
             if self.scheduler is not None:
                 self.scheduler.step()
             self.train_one_epoch(epoch)
+            self.test(epoch)
 
     def test(self, epoch=-1):
         self.model.eval()

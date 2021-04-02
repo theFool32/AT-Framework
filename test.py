@@ -4,6 +4,7 @@ import argparse
 
 import torch
 from torch.nn import functional as F
+from autoattack import AutoAttack
 
 from models import get_network
 from datasets import get_dataset
@@ -65,6 +66,15 @@ def main():
 
     msg = f"{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
     print(msg)
+
+    ### Evaluate AutoAttack ###
+    l = [x for (x, y) in dataset.test_loader]
+    x_test = torch.cat(l, 0)
+    l = [y for (x, y) in dataset.test_loader]
+    y_test = torch.cat(l, 0)
+    epsilon = 8 / 255.
+    adversary = AutoAttack(model, norm='Linf', eps=epsilon, version='standard')
+    X_adv = adversary.run_standard_evaluation(x_test, y_test, bs=256)
 
 
 if __name__ == '__main__':

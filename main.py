@@ -2,9 +2,8 @@
 
 import argparse
 
-from torch import optim
+import time
 import logging
-import sys
 import os
 import numpy as np
 import torch
@@ -50,6 +49,10 @@ def get_args():
 
 def main():
     args = get_args()
+
+    current_time = time.ctime()
+    args.fname = args.fname + '_' + current_time
+    args.checkpoints = args.checkpoints + '_' + current_time
 
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
