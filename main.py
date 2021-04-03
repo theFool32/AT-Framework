@@ -12,8 +12,9 @@ from tensorboardX import SummaryWriter
 from trainer import Trainer
 from models import get_network
 from datasets import get_dataset
-from attacks import PGD
+from attacks import *
 from utils import git_version
+from defenses import *
 
 
 def get_args():
@@ -27,9 +28,9 @@ def get_args():
     parser.add_argument(
         "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
     )
-    parser.add_argument("--log-step", default=10, type=int)
+    parser.add_argument("--log-step", default=100, type=int)
     parser.add_argument("--lr", default=1e-1, type=float)
-    parser.add_argument("--weight-decay", default=1e-4, type=float)
+    parser.add_argument("--weight-decay", default=5e-4, type=float)
     parser.add_argument("--epsilon", default=8, type=int)
     parser.add_argument("--attack-iters", default=10, type=int)
     parser.add_argument("--pgd-alpha", default=2, type=float)
@@ -51,13 +52,14 @@ def main():
     args = get_args()
 
     current_time = time.ctime()
-    args.fname = args.fname + '_' + current_time
-    args.checkpoints = args.checkpoints + '_' + current_time
+    args.fname = args.fname + '/' + current_time
+    args.checkpoints = args.checkpoints + '/' + current_time
 
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
     if not os.path.exists(args.checkpoints):
         os.makedirs(args.checkpoints)
+
     logger = logging.getLogger(__name__)
     logging.basicConfig(
         format="[%(asctime)s] - %(message)s",
@@ -80,10 +82,12 @@ def main():
 
     dataset = get_dataset(args)
 
-    args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
-    args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
+    args.mean = dataset.mean
+    args.std = dataset.std
     model = get_network(args)
 
+
+    # TODO:
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
@@ -92,6 +96,7 @@ def main():
     )
 
     attack = PGD(args, model=model)
+    defense = get_defense(args, model, attack)
 
     trainer = Trainer(
         args=args,
@@ -102,6 +107,7 @@ def main():
         scheduler=scheduler,
         attack=attack,
         writer=writer,
+        defense=defense
     )
     trainer.train()
 

@@ -18,10 +18,12 @@ class Trainer:
         dataset: Dataset,
         logger: logging.Logger,
         optimizer,
+        defense,
         attack=None,
         scheduler=None,
         writer=None,
     ):
+        self.defense = defense
         self.args = args
         self.model = model
         self.dataset = dataset
@@ -45,35 +47,32 @@ class Trainer:
         nat_acc_meter = AverageMeter()
         adv_acc_meter = AverageMeter()
         for batch_idx, (data, label) in enumerate(self.dataset.train_loader):
-            # TODO: device
             data, label = data.cuda(), label.cuda()
 
-            output = self.model(data)
+            output, adv_output, loss, adv_loss, total_loss = self.defense.train(data, label)
+
             pred = torch.max(output, dim=1)[1]
             nat_acc = (pred == label).sum().item()
 
-            adv_data = self.attack.perturb(data).detach()
-            adv_output = self.model(adv_data)
-            adv_pred = torch.max(adv_output, dim=1)[1]
-            adv_acc = (adv_pred == label).sum().item()
-
-            loss = F.cross_entropy(output, label)
-            adv_loss = F.cross_entropy(adv_output, label)
+            if adv_output is None:
+                adv_acc = 0
+            else:
+                adv_pred = torch.max(adv_output, dim=1)[1]
+                adv_acc = (adv_pred == label).sum().item()
 
             self.opt.zero_grad()
-            # loss.backward()
-            adv_loss.backward()
+            total_loss.backward()
             self.opt.step()
 
-            nat_loss_meter.update(loss.item())
+            nat_loss_meter.update(loss)
             nat_acc_meter.update(nat_acc / data.size(0), data.size(0))
-            adv_loss_meter.update(adv_loss.item())
+            adv_loss_meter.update(adv_loss)
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
             if batch_idx % self.args.log_step == 0:
                 msg = (
-                    f"{batch_idx}/{epoch} \t{loss.item():.3f}/{nat_loss_meter.avg:.3f} \t{nat_acc/data.size(0)*100:.2f}/{nat_acc_meter.avg*100:.2f} "
-                    f"\t{adv_loss.item():.3f}/{adv_loss_meter.avg:.3f} \t{adv_acc/data.size(0)*100:.2f}/{adv_acc_meter.avg*100:.2f}"
+                    f"{batch_idx}/{epoch} \t{loss:.3f}/{nat_loss_meter.avg:.3f} \t{nat_acc/data.size(0)*100:.2f}/{nat_acc_meter.avg*100:.2f} "
+                    f"\t{adv_loss:.3f}/{adv_loss_meter.avg:.3f} \t{adv_acc/data.size(0)*100:.2f}/{adv_acc_meter.avg*100:.2f}"
                 )
                 self.logger.info(msg)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
@@ -101,21 +100,17 @@ class Trainer:
         for batch_idx, (data, label) in enumerate(self.dataset.test_loader):
             data, label = data.cuda(), label.cuda()
 
-            output = self.model(data)
+            output, adv_output, loss, adv_loss, total_loss = self.defense.test(data, label)
+
             pred = torch.max(output, dim=1)[1]
             nat_acc = (pred == label).sum().item()
 
-            adv_data = self.attack.perturb(data).detach()
-            adv_output = self.model(adv_data)
             adv_pred = torch.max(adv_output, dim=1)[1]
             adv_acc = (adv_pred == label).sum().item()
 
-            loss = F.cross_entropy(output, label)
-            adv_loss = F.cross_entropy(adv_output, label)
-
-            nat_loss_meter.update(loss.item())
+            nat_loss_meter.update(loss)
             nat_acc_meter.update(nat_acc / data.size(0), data.size(0))
-            adv_loss_meter.update(adv_loss.item())
+            adv_loss_meter.update(adv_loss)
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"

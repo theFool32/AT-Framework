@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import torch
 from torchvision import datasets
 from torch.utils import data
 from torchvision import transforms
@@ -69,6 +70,14 @@ class Cifar10(Dataset):
         if self.val:
             return self._val_loader
         return None
+
+    @property
+    def mean(self):
+        return torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
+
+    @property
+    def std(self):
+        return torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
 
 
 if __name__ == "__main__":
