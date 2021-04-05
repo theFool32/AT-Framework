@@ -20,9 +20,20 @@ def attack_pgd(
     restarts,
     norm,
     early_stop=False,
+    loss_fn=None,
 ):
     max_loss = torch.zeros(y.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
+    if loss_fn is not None:
+        with torch.no_grad():
+            is_model_training = model.training()
+            model.eval()
+            nat_output = model(X).detach()
+            if is_model_training:
+                model.train()
+    else:
+        nat_output = None
+
     for _ in range(restarts):
         delta = torch.zeros_like(X).cuda()
         if norm == "l_inf":
@@ -45,7 +56,10 @@ def attack_pgd(
                 index = slice(None, None, None)
             if not isinstance(index, slice) and len(index) == 0:
                 break
-            loss = F.cross_entropy(output, y)
+            if loss_fn is None:
+                loss = F.cross_entropy(output, y)
+            else:
+                loss = loss_fn(output, y, nat_output)
             loss.backward()
             grad = delta.grad.detach()
             d = delta[index, :, :, :]
@@ -80,7 +94,7 @@ class PGD(Attack):
 
         self.model = model
 
-    def perturb(self, inputs, labels=None, early_stop=False):
+    def perturb(self, inputs, labels=None, loss_fn=None, early_stop=False):
         return inputs + attack_pgd(
             self.model,
             inputs,
@@ -91,4 +105,5 @@ class PGD(Attack):
             1,
             self.norm,
             early_stop,
+            loss_fn
         )
