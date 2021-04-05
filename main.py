@@ -23,11 +23,13 @@ def get_args():
     parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("--dataset", default="cifar10", type=str)
     parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
-    parser.add_argument("--max-epoch", default=100, type=int)
+    parser.add_argument("--max-epoch", default=110, type=int)
     parser.add_argument("--epoch", default=0, type=int)
     parser.add_argument(
         "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
     )
+    parser.add_argument("--inner-loss", default="CE", type=str)
+    parser.add_argument("--outer-loss", default="CE", type=str)
     parser.add_argument("--log-step", default=100, type=int)
     parser.add_argument("--lr", default=1e-1, type=float)
     parser.add_argument("--weight-decay", default=5e-4, type=float)
@@ -52,8 +54,8 @@ def main():
     args = get_args()
 
     current_time = time.ctime()
-    args.fname = args.fname + '/' + current_time
-    args.checkpoints = args.checkpoints + '/' + current_time
+    args.fname = args.fname + "/" + current_time
+    args.checkpoints = args.checkpoints + "/" + current_time
 
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
@@ -86,13 +88,12 @@ def main():
     args.std = dataset.std
     model = get_network(args)
 
-
     # TODO:
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        opt, milestones=[75, 90], gamma=0.1
+        opt, milestones=[100, 105], gamma=0.1
     )
 
     attack = PGD(args, model=model)
@@ -107,7 +108,7 @@ def main():
         scheduler=scheduler,
         attack=attack,
         writer=writer,
-        defense=defense
+        defense=defense,
     )
     trainer.train()
 

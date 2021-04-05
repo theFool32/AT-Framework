@@ -4,10 +4,22 @@ import torch
 from torch.nn import functional as F
 from .base import Defense
 
+import sys
+sys.path.insert(0, '..')
+from losses import *
 
 class AT(Defense):
     def __init__(self, model, attack, **kw):
         super(AT, self).__init__(model, attack, **kw)
+        if 'inner_loss' in kw:
+            self.inner_loss_fn = kw['inner_loss']
+        else:
+            self.inner_loss_fn = cross_entropy
+
+        if 'outer_loss' in kw:
+            self.outer_loss_fn = kw['outer_loss']
+        else:
+            self.outer_loss_fn = cross_entropy
 
     def train(self, data, label):
         output = self.model(data)
@@ -17,7 +29,7 @@ class AT(Defense):
         adv_data = self.attack.perturb(data, label).detach()
         # self.model.train()
         adv_output = self.model(adv_data)
-        adv_loss = F.cross_entropy(adv_output, label)
+        adv_loss = self.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss
 

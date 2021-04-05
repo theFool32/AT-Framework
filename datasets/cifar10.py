@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+from collections import namedtuple
+
 import torch
 from torchvision import datasets
 from torch.utils import data
 from torchvision import transforms
+from torch import Tensor
+import numpy as np
 
 from .base import Dataset
 
@@ -20,7 +24,7 @@ class Cifar10(Dataset):
 
         train_transform = transforms.Compose(
             [
-                transforms.RandomCrop(32, padding=4),
+                transforms.RandomCrop(32, padding=4, padding_mode="reflect"),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
             ]
@@ -45,14 +49,14 @@ class Cifar10(Dataset):
         self._train_loader = data.DataLoader(
             self._train_dataset,
             batch_size=batch_size,
-            num_workers=2,
+            num_workers=4,
             pin_memory=True,
             shuffle=True,
         )
         self._test_loader = data.DataLoader(
             self._test_dataset,
             batch_size=batch_size,
-            num_workers=2,
+            num_workers=4,
             pin_memory=True,
             shuffle=False,
         )

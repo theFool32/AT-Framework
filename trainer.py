@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import shutil
 import os
 import torch
 from torch.nn import functional as F
@@ -33,11 +34,35 @@ class Trainer:
         self.scheduler = scheduler
         self.writer = writer
 
-    def save_model(self, epoch, name=""):
+        self.best_acc = -1
+        self.best_epoch = -1
+
+    def save_model(self, epoch, acc):
         torch.save(
-            {"state": self.model.state_dict(), "optimizer": self.opt.state_dict()},
-            os.path.join(self.args.checkpoints, f"model_{epoch}_{name}.pth"),
+            {
+                "state_dict": self.model.state_dict(),
+                "optimizer": self.opt.state_dict(),
+                "epoch": epoch,
+            },
+            os.path.join(self.args.checkpoints, f"model_{epoch}.pth"),
         )
+        if acc > self.best_acc:
+            self.best_acc = acc
+            self.best_epoch = epoch
+            target = os.path.abspath(
+                os.path.join(self.args.checkpoints, f"model_{epoch}.pth")
+            )
+            link_name = os.path.abspath(
+                os.path.join(self.args.checkpoints, f"model_best.pth")
+            )
+            try:
+                os.symlink(target, link_name)
+            except OSError as e:
+                if e.errno == errno.EEXIST:
+                    os.remove(link_name)
+                    os.symlink(target, link_name)
+                else:
+                    raise e
 
     def train_one_epoch(self, epoch):
         self.logger.info("Train_Epoch \tNat_Loss \tNat_Acc \tAdv_Loss \tAdv_Acc")
@@ -49,7 +74,9 @@ class Trainer:
         for batch_idx, (data, label) in enumerate(self.dataset.train_loader):
             data, label = data.cuda(), label.cuda()
 
-            output, adv_output, loss, adv_loss, total_loss = self.defense.train(data, label)
+            output, adv_output, loss, adv_loss, total_loss = self.defense.train(
+                data, label
+            )
 
             pred = torch.max(output, dim=1)[1]
             nat_acc = (pred == label).sum().item()
@@ -100,7 +127,9 @@ class Trainer:
         for batch_idx, (data, label) in enumerate(self.dataset.test_loader):
             data, label = data.cuda(), label.cuda()
 
-            output, adv_output, loss, adv_loss, total_loss = self.defense.test(data, label)
+            output, adv_output, loss, adv_loss, total_loss = self.defense.test(
+                data, label
+            )
 
             pred = torch.max(output, dim=1)[1]
             nat_acc = (pred == label).sum().item()
@@ -120,7 +149,7 @@ class Trainer:
         self.writer.add_scalar("test/adv_acc", adv_acc_meter.avg, global_step=epoch)
         self.writer.flush()
         self.logger.info(msg)
-        self.save_model(epoch)
+        self.save_model(epoch, adv_acc_meter.avg)
 
     def val(self):
         self.model.eval()

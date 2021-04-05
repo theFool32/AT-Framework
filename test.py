@@ -35,6 +35,7 @@ def main():
     args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
     args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
     model = get_network(args)
+    # model.basic_net = torch.nn.DataParallel(model.basic_net)
     model.load_state_dict(torch.load(args.checkpoint)['state'])
     attack = PGD(args, model=model)
     dataset = get_dataset(args)
@@ -51,7 +52,7 @@ def main():
         pred = torch.max(output, dim=1)[1]
         nat_acc = (pred == label).sum().item()
 
-        adv_data = attack.perturb(data).detach()
+        adv_data = attack.perturb(data, label).detach()
         adv_output = model(adv_data)
         adv_pred = torch.max(adv_output, dim=1)[1]
         adv_acc = (adv_pred == label).sum().item()
