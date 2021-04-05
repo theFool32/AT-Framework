@@ -6,20 +6,14 @@ from .base import Defense
 
 import sys
 sys.path.insert(0, '..')
-from losses import *
+from losses import get_loss_fn
 
 class AT(Defense):
-    def __init__(self, model, attack, **kw):
-        super(AT, self).__init__(model, attack, **kw)
-        if 'inner_loss' in kw:
-            self.inner_loss_fn = kw['inner_loss']
-        else:
-            self.inner_loss_fn = cross_entropy
-
-        if 'outer_loss' in kw:
-            self.outer_loss_fn = kw['outer_loss']
-        else:
-            self.outer_loss_fn = cross_entropy
+    def __init__(self, _model, _attack, **kw):
+        print(kw)
+        super(AT, self).__init__(_model, _attack, **kw)
+        self.inner_loss_fn = get_loss_fn(kw['inner_loss'])
+        self.outer_loss_fn = get_loss_fn(kw['outer_loss'])
 
     def train(self, data, label):
         output = self.model(data)

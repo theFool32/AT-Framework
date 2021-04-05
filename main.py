@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-
 import time
 import logging
 import os
@@ -14,17 +13,20 @@ from models import get_network
 from datasets import get_dataset
 from attacks import *
 from utils import git_version
+from utils import Parameters
 from defenses import *
 
 
 def get_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='cifar10_linf_AT', type=str)
     parser.add_argument("--model", default="PreActResNet18")
     parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("--dataset", default="cifar10", type=str)
     parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
     parser.add_argument("--max-epoch", default=110, type=int)
     parser.add_argument("--epoch", default=0, type=int)
+    parser.add_argument("--defense", default="at", type=str)
     parser.add_argument(
         "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
     )
@@ -42,16 +44,24 @@ def get_args():
     parser.add_argument("--seed", default=0, type=int)
 
     parser.add_argument("--resume", default=0, type=int)
+    parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--eval", action="store_true")
-    parser.add_argument("--val", action="store_true")
-    parser.add_argument("--chkpt-iters", default=10, type=int)
+    parser.add_argument("--chkpt-save", default=10, type=int)
     args = parser.parse_args()
-    # args = vars(args)
+
+    import configs
+    try:
+        config = getattr(configs, args.config + '_config')
+        args = {**config, **vars(args)}
+        args = Parameters(args)
+    except Exception:
+        raise NotImplementedError(f"No such configuration: {args.config}")
     return args
 
 
 def main():
     args = get_args()
+    print(args)
 
     current_time = time.ctime()
     args.fname = args.fname + "/" + current_time
@@ -98,6 +108,14 @@ def main():
 
     attack = PGD(args, model=model)
     defense = get_defense(args, model, attack)
+
+    __import__("ipdb").set_trace()
+
+    if args.resume:
+        state = torch.load(args.resume_checkpoint)
+        model.load_state_dict(state['state_dict'])
+        opt.load_state_dict(state['optimizer'])
+        args.epoch = state['epoch']
 
     trainer = Trainer(
         args=args,

@@ -26,7 +26,7 @@ def attack_pgd(
     max_delta = torch.zeros_like(X).cuda()
     if loss_fn is not None:
         with torch.no_grad():
-            is_model_training = model.training()
+            is_model_training = model.training
             model.eval()
             nat_output = model(X).detach()
             if is_model_training:

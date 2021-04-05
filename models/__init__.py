@@ -19,7 +19,11 @@ class ModelWrap(nn.Module):
 
 
 def get_network(args):
-    # TODO: ugly
-    # device
-    # parallel
-    return ModelWrap(globals()[args.model](), args.mean, args.std).cuda()
+    model_name = args.model
+    if model_name == 'PreActResNet18':
+        model = PreActResNet18()
+    else:
+        raise NotImplementedError(f"Model not implemented: {model_name}")
+
+    return ModelWrap(model, args.mean, args.std).cuda()
+    # return ModelWrap(globals()[args.model](), args.mean, args.std).cuda()
