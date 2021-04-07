@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import errno
 import shutil
 import os
 import torch
@@ -144,13 +145,13 @@ class Trainer:
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
+        self.logger.info(msg)
         self.logger.info("=" * 70)
         self.writer.add_scalar("test/nat_loss", nat_loss_meter.avg, global_step=epoch)
         self.writer.add_scalar("test/nat_acc", nat_acc_meter.avg, global_step=epoch)
         self.writer.add_scalar("test/adv_loss", adv_loss_meter.avg, global_step=epoch)
         self.writer.add_scalar("test/adv_acc", adv_acc_meter.avg, global_step=epoch)
         self.writer.flush()
-        self.logger.info(msg)
         self.save_model(epoch, adv_acc_meter.avg)
 
     def val(self):

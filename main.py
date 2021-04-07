@@ -40,7 +40,6 @@ def get_args():
     parser.add_argument("--pgd-alpha", default=2, type=float)
     parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--fname", default="cifar_model", type=str)
-    parser.add_argument("--checkpoints", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
 
     parser.add_argument("--resume", default=0, type=int)
@@ -48,6 +47,8 @@ def get_args():
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--chkpt-save", default=10, type=int)
     args = parser.parse_args()
+
+    args.checkpoints = args.fname + '_checkpoints'
 
     import configs
     try:
@@ -61,7 +62,6 @@ def get_args():
 
 def main():
     args = get_args()
-    print(args)
 
     current_time = time.ctime()
     args.fname = args.fname + "/" + current_time
@@ -108,8 +108,6 @@ def main():
 
     attack = PGD(args, model=model)
     defense = get_defense(args, model, attack)
-
-    __import__("ipdb").set_trace()
 
     if args.resume:
         state = torch.load(args.resume_checkpoint)

@@ -10,7 +10,6 @@ from losses import get_loss_fn
 
 class AT(Defense):
     def __init__(self, _model, _attack, **kw):
-        print(kw)
         super(AT, self).__init__(_model, _attack, **kw)
         self.inner_loss_fn = get_loss_fn(kw['inner_loss'])
         self.outer_loss_fn = get_loss_fn(kw['outer_loss'])

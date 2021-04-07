@@ -3,8 +3,9 @@
 from .base import Attack
 
 import torch
-from torch.nn import functional as F
-
+import sys
+sys.path.insert(0, '..')
+from losses import get_loss_fn
 
 def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
@@ -33,6 +34,7 @@ def attack_pgd(
                 model.train()
     else:
         nat_output = None
+        loss_fn = get_loss_fn('CE')
 
     for _ in range(restarts):
         delta = torch.zeros_like(X).cuda()
@@ -56,10 +58,7 @@ def attack_pgd(
                 index = slice(None, None, None)
             if not isinstance(index, slice) and len(index) == 0:
                 break
-            if loss_fn is None:
-                loss = F.cross_entropy(output, y)
-            else:
-                loss = loss_fn(output, y, nat_output)
+            loss = loss_fn(output, y, nat_output)
             loss.backward()
             grad = delta.grad.detach()
             d = delta[index, :, :, :]
@@ -79,7 +78,7 @@ def attack_pgd(
             d = clamp(d, -x, 1 - x)
             delta.data[index, :, :, :] = d
             delta.grad.zero_()
-        all_loss = F.cross_entropy(model(X + delta), y, reduction="none")
+        all_loss = loss_fn(model(X + delta), y, reduction="none")
         max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
         max_loss = torch.max(max_loss, all_loss)
     return max_delta
@@ -105,5 +104,5 @@ class PGD(Attack):
             1,
             self.norm,
             early_stop,
-            loss_fn
+            loss_fn,
         )
