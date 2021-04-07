@@ -4,12 +4,12 @@
 Under construction.
 
 ** Results
-*** CIFAR-10 L-inf $\eps=8/255$
+*** CIFAR-10 L-inf $\epsilon=8/255$
 #+begin_src
 weight-decay = 5e-4
 batch-size = 128
-max-epochs = 120
-lr = 1e-1, decaied at {100, 110} with 0.1
+max-epochs = 110
+lr = 1e-1, decaied at {100, 105} with 0.1
 #+end_src
 **** PreAct ResNet-18
 | Method | Best/Last | Clean |  FGSM | PGD-10 | PGD-20 |    AA |
