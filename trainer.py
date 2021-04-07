@@ -116,7 +116,10 @@ class Trainer:
             if self.scheduler is not None:
                 self.scheduler.step()
             self.train_one_epoch(epoch)
-            self.test(epoch)
+            if self.args.save_checkpoints is not None and self.args.save_checkpoints(
+                epoch
+            ):
+                self.test(epoch)
 
     def test(self, epoch=-1):
         self.model.eval()
