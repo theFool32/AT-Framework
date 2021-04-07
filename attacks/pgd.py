@@ -4,8 +4,10 @@ from .base import Attack
 
 import torch
 import sys
-sys.path.insert(0, '..')
+
+sys.path.insert(0, "..")
 from losses import get_loss_fn
+
 
 def clamp(X, lower_limit, upper_limit):
     return torch.max(torch.min(X, upper_limit), lower_limit)
@@ -22,9 +24,11 @@ def attack_pgd(
     norm,
     early_stop=False,
     loss_fn=None,
+    init_mode="pgd",
 ):
     max_loss = torch.zeros(y.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
+    init_mode = init_mode.lower()
     if loss_fn is not None:
         with torch.no_grad():
             is_model_training = model.training
@@ -34,18 +38,21 @@ def attack_pgd(
                 model.train()
     else:
         nat_output = None
-        loss_fn = get_loss_fn('CE')
+        loss_fn = get_loss_fn("CE")
 
     for _ in range(restarts):
         delta = torch.zeros_like(X).cuda()
-        if norm == "l_inf":
-            delta.uniform_(-epsilon, epsilon)
-        elif norm == "l_2":
-            delta.normal_()
-            d_flat = delta.view(delta.size(0), -1)
-            n = d_flat.norm(p=2, dim=1).view(delta.size(0), 1, 1, 1)
-            r = torch.zeros_like(n).uniform_(0, 1)
-            delta *= r / n * epsilon
+        if init_mode == "pgd":
+            if norm == "l_inf":
+                delta.uniform_(-epsilon, epsilon)
+            elif norm == "l_2":
+                delta.normal_()
+                d_flat = delta.view(delta.size(0), -1)
+                n = d_flat.norm(p=2, dim=1).view(delta.size(0), 1, 1, 1)
+                r = torch.zeros_like(n).uniform_(0, 1)
+                delta *= r / n * epsilon
+        elif init_mode == "trades":
+            delta = 0.001 * torch.randn(X.shape).to(delta.device).detach()
         else:
             raise ValueError
         delta = clamp(delta, -X, 1 - X)
@@ -93,7 +100,9 @@ class PGD(Attack):
 
         self.model = model
 
-    def perturb(self, inputs, labels=None, loss_fn=None, early_stop=False):
+    def perturb(
+        self, inputs, labels=None, loss_fn=None, early_stop=False, init_mode="pgd"
+    ):
         return inputs + attack_pgd(
             self.model,
             inputs,

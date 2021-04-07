@@ -57,6 +57,7 @@ def get_args():
         args = Parameters(args)
     except Exception:
         raise NotImplementedError(f"No such configuration: {args.config}")
+    __import__("ipdb").set_trace()
     return args
 
 
