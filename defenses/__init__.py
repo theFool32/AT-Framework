@@ -2,6 +2,7 @@
 
 from .at import AT
 from .trades import TRADES
+from .mart import MART
 from .no_defense import NoDefense
 
 def get_defense(args, model, attack):
@@ -10,5 +11,7 @@ def get_defense(args, model, attack):
         return AT(model, attack, **args.__dict__)
     elif defense_method == 'trades':
         return TRADES(model, attack, **args.__dict__)
+    elif defense_method == 'mart':
+        return MART(model, attack, **args.__dict__)
     else:
         raise NotImplementedError(f"Defense not implemented: {defense_method}")

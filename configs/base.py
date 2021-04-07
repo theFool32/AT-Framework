@@ -31,11 +31,17 @@ linf_AT_config = {
 }
 
 linf_TRADES_config = {
-    **linf_base_config,
+    **linf_AT_config,
     "defense": "trades",
     "attack": "pgd",
     "inner_loss": "trades_inner",
     "outer_loss": "trades_outer",
-    "attack_iters": 10,
-    "pgd_alpha": 2,
+}
+
+linf_MART_config = {
+    **linf_AT_config,
+    "defense": "mart",
+    "attack": "pgd",
+    "inner_loss": "CE",
+    "outer_loss": "mart_outer",
 }

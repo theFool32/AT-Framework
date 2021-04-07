@@ -11,5 +11,7 @@ def get_loss_fn(name):
         return trades_inner
     elif name == "trades_outer":
         return trades_outer
+    elif name == "mart_outer":
+        return mart_outer
     else:
         raise NotImplementedError(f"Loss function not implemented: {name}")
