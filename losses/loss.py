@@ -11,10 +11,16 @@ def cross_entropy(adv_logit, label, nat_logit=None, reduction="mean"):
     return F.cross_entropy(adv_logit, label, reduction=reduction)
 
 
-def trades_inner(adv_logit, label, nat_logit=None):
-    return F.kl_div(
-        F.log_softmax(adv_logit, dim=1), F.softmax(nat_logit, dim=1), reduction="sum"
+def trades_inner(adv_logit, label, nat_logit=None, reduction="sum"):
+    loss = F.kl_div(
+        F.log_softmax(adv_logit, dim=1),
+        F.softmax(nat_logit, dim=1),
+        reduction="none",
     )
+    if reduction == "sum":
+        return loss.sum()
+    elif reduction == "none":
+        return loss.sum(1)
 
 
 def trades_outer(adv_logit, label, nat_logit=None, reduction="mean"):

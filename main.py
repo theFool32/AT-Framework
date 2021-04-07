@@ -19,45 +19,41 @@ from defenses import *
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='cifar10_linf_AT', type=str)
+    parser.add_argument("--config", default="cifar10_linf_AT", type=str)
     parser.add_argument("--model", default="PreActResNet18")
-    parser.add_argument("--batch-size", default=128, type=int)
-    parser.add_argument("--dataset", default="cifar10", type=str)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--dataset", type=str)
     parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
-    parser.add_argument("--max-epoch", default=110, type=int)
-    parser.add_argument("--epoch", default=0, type=int)
-    parser.add_argument("--defense", default="at", type=str)
-    parser.add_argument(
-        "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
-    )
-    parser.add_argument("--inner-loss", default="CE", type=str)
-    parser.add_argument("--outer-loss", default="CE", type=str)
-    parser.add_argument("--log-step", default=100, type=int)
-    parser.add_argument("--lr", default=1e-1, type=float)
-    parser.add_argument("--weight-decay", default=5e-4, type=float)
-    parser.add_argument("--epsilon", default=8, type=int)
-    parser.add_argument("--attack-iters", default=10, type=int)
-    parser.add_argument("--pgd-alpha", default=2, type=float)
-    parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
-    parser.add_argument("--fname", default="cifar_model", type=str)
-    parser.add_argument("--seed", default=0, type=int)
+    parser.add_argument("--max-epoch", type=int)
+    parser.add_argument("--epoch", type=int)
+    parser.add_argument("--defense", type=str)
+    parser.add_argument("--attack", type=str, choices=["pgd", "fgsm", "free", "none"])
+    parser.add_argument("--inner-loss", type=str)
+    parser.add_argument("--outer-loss", type=str)
+    parser.add_argument("--log-step", type=int)
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--weight-decay", type=float)
+    parser.add_argument("--epsilon", type=int)
+    parser.add_argument("--attack-iters", type=int)
+    parser.add_argument("--pgd-alpha", type=float)
 
-    parser.add_argument("--resume", default=0, type=int)
+    parser.add_argument("--norm", type=str, choices=["l_inf", "l_2"])
+    parser.add_argument("--fname", type=str)
+    parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--eval", action="store_true")
-    parser.add_argument("--chkpt-save", default=10, type=int)
     args = parser.parse_args()
 
-    args.checkpoints = args.fname + '_checkpoints'
 
     import configs
     try:
-        config = getattr(configs, args.config + '_config')
-        args = {**config, **vars(args)}
+        config = getattr(configs, args.config + "_config")
+        args = vars(args)
+        args = {**config, **{k: args[k] for k in args if args[k] is not None}}
         args = Parameters(args)
     except Exception:
         raise NotImplementedError(f"No such configuration: {args.config}")
-    __import__("ipdb").set_trace()
+    args.checkpoints = args.fname + "_checkpoints"
     return args
 
 
@@ -110,11 +106,11 @@ def main():
     attack = PGD(args, model=model)
     defense = get_defense(args, model, attack)
 
-    if args.resume:
+    if args.resume_checkpoint != "":
         state = torch.load(args.resume_checkpoint)
-        model.load_state_dict(state['state_dict'])
-        opt.load_state_dict(state['optimizer'])
-        args.epoch = state['epoch']
+        model.load_state_dict(state["state_dict"])
+        opt.load_state_dict(state["optimizer"])
+        args.epoch = state["epoch"]
 
     trainer = Trainer(
         args=args,

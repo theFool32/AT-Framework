@@ -85,7 +85,7 @@ def attack_pgd(
             d = clamp(d, -x, 1 - x)
             delta.data[index, :, :, :] = d
             delta.grad.zero_()
-        all_loss = loss_fn(model(X + delta), y, reduction="none")
+        all_loss = loss_fn(model(X + delta), y, nat_output, reduction="none")
         max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
         max_loss = torch.max(max_loss, all_loss)
     return max_delta
