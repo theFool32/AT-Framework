@@ -36,13 +36,15 @@ def get_args():
     parser.add_argument("--epsilon", type=int)
     parser.add_argument("--attack-iters", type=int)
     parser.add_argument("--pgd-alpha", type=float)
-
     parser.add_argument("--norm", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--fname", type=str)
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--eval", action="store_true")
+    parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
 
     import configs

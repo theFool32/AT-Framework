@@ -10,7 +10,7 @@ from torch import nn
 class ModelWrap(nn.Module):
     def __init__(self, basic_net, mean, std):
         super(ModelWrap, self).__init__()
-        self.basic_net = basic_net
+        self.basic_net = nn.DataParallel(basic_net)
         self.mean = mean
         self.std = std
 
@@ -29,5 +29,5 @@ def get_network(args):
     else:
         raise NotImplementedError(f"Model not implemented: {model_name}")
 
-    return ModelWrap(model, args.mean, args.std).cuda()
+    return ModelWrap(model.cuda(), args.mean, args.std).cuda()
     # return ModelWrap(globals()[args.model](), args.mean, args.std).cuda()
