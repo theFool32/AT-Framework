@@ -2,3 +2,39 @@
 
 
 Under construction.
+
+** Results
+*** CIFAR-10 L-inf $\eps=8/255$
+#+begin_src
+weight-decay = 5e-4
+batch-size = 128
+max-epochs = 120
+lr = 1e-1, decaied at {100, 110} with 0.1
+#+end_src
+**** PreAct ResNet-18
+| Method | Best/Last | Clean |  FGSM | PGD-10 | PGD-20 |    AA |
+|--------+-----------+-------+-------+--------+--------+-------|
+| AT     | B         | 83.14 | 61.41 |  53.69 |  52.68 | 48.40 |
+|        | L         | 83.74 | 61.77 |  53.35 |  52.38 | 48.36 |
+| TRADES | B         |       |       |        |        |       |
+|        | L         |       |       |        |        |       |
+| MART   | B         |       |       |        |        |       |
+|        | L         |       |       |        |        |       |
+**** WideResNet-28-10
+| Method | Best/Last | Clean | FGSM | PGD-10 | PGD-20 | AA |
+|--------+-----------+-------+------+--------+--------+----|
+| AT     | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
+| TRADES | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
+| MART   | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
+**** WideResNet-34-10
+| Method | Best/Last | Clean | FGSM | PGD-10 | PGD-20 | AA |
+|--------+-----------+-------+------+--------+--------+----|
+| AT     | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
+| TRADES | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
+| MART   | B         |       |      |        |        |    |
+|        | L         |       |      |        |        |    |
