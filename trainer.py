@@ -157,11 +157,11 @@ class Trainer:
             adv_loss_meter.update(adv_loss)
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
+        self.save_model(epoch, adv_acc_meter.avg, nat_acc_meter.avg)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
         self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc}")
         self.logger.info("=" * 70)
-        self.save_model(epoch, adv_acc_meter.avg, nat_acc_meter.avg)
 
         self.writer.add_scalar(
             "test/nat_loss", nat_loss_meter.avg, global_step=epoch

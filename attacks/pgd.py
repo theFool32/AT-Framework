@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from torch.random import initial_seed
 from .base import Attack
 
 import torch
@@ -29,11 +30,13 @@ def attack_pgd(
     max_loss = torch.zeros(y.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
     init_mode = init_mode.lower()
-    is_model_training = model.training
-    model.eval()
     if loss_fn is not None:
         with torch.no_grad():
+            is_model_training = model.training
+            model.eval()
             nat_output = model(X).detach()
+            if is_model_training:
+                model.train()
     else:
         nat_output = None
         loss_fn = get_loss_fn("CE")
@@ -55,6 +58,7 @@ def attack_pgd(
             raise ValueError
         delta = clamp(delta, -X, 1 - X)
         delta.requires_grad = True
+
         for _ in range(attack_iters):
             output = model(X + delta)
             if early_stop:
@@ -86,8 +90,6 @@ def attack_pgd(
         all_loss = loss_fn(model(X + delta), y, nat_output, reduction="none")
         max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
         max_loss = torch.max(max_loss, all_loss)
-    if is_model_training:
-        model.train()
     return max_delta
 
 
@@ -112,6 +114,7 @@ class PGD(Attack):
             self.iters,
             1,
             self.norm,
-            early_stop,
-            loss_fn,
+            early_stop=early_stop,
+            loss_fn=loss_fn,
+            init_mode=init_mode
         )
