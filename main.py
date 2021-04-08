@@ -56,11 +56,18 @@ def get_args():
         args = Parameters(args)
     except Exception:
         raise NotImplementedError(f"No such configuration: {args.config}")
+
+    args.fname = args.fname + "_" + args.model
     args.checkpoints = args.fname + "_checkpoints"
 
     current_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
     args.fname = args.fname + "/" + current_time
     args.checkpoints = args.checkpoints + "/" + current_time
+
+    output_dir = "Outputs/"
+    args.fname = output_dir + args.fname
+    args.checkpoints = output_dir + args.checkpoints
+
     return args
 
 

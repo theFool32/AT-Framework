@@ -29,13 +29,11 @@ def attack_pgd(
     max_loss = torch.zeros(y.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
     init_mode = init_mode.lower()
+    is_model_training = model.training
+    model.eval()
     if loss_fn is not None:
         with torch.no_grad():
-            is_model_training = model.training
-            model.eval()
             nat_output = model(X).detach()
-            if is_model_training:
-                model.train()
     else:
         nat_output = None
         loss_fn = get_loss_fn("CE")
@@ -88,6 +86,8 @@ def attack_pgd(
         all_loss = loss_fn(model(X + delta), y, nat_output, reduction="none")
         max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
         max_loss = torch.max(max_loss, all_loss)
+    if is_model_training:
+        model.train()
     return max_delta
 
 
