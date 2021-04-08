@@ -26,6 +26,7 @@ def get_args():
     parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--checkpoint", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
+    parser.add_argument("--no-apex", default=True, type=bool)
 
     args = parser.parse_args()
     return args
@@ -65,11 +66,14 @@ def main():
     attack = PGD(args, model=model)
     print('Test pgd10')
     pgd10_acc, nat_acc = pgd(model, dataset.test_loader, attack, need_nature_acc=True)
+    print(f'Nature: {nat_acc}')
+    print(f'PGD-10: {pgd10_acc}')
 
     args.attack_iters = 20
     print('Test pgd20')
     attack = PGD(args, model=model)
     pgd20_acc, _ = pgd(model, dataset.test_loader, attack)
+    print(f'PGD-20: {pgd20_acc}')
 
     args.attack_iters = 1
     args.pgd_alpha = 10

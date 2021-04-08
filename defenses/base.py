@@ -12,6 +12,11 @@ class Defense(metaclass=ABCMeta):
     def train(self, data, label):
         pass
 
-    def test(self, data, label):
+    def test(self, data, label, test_attack=None):
         self.model.eval()
-        return self.train(data, label)
+        attack = self.attack
+        if test_attack is not None:
+            self.attack = test_attack
+        result = self.train(data, label)
+        self.attack = attack
+        return result

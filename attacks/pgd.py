@@ -99,11 +99,11 @@ def attack_pgd(
 
 
 class PGD(Attack):
-    def __init__(self, args, model):
-        self.epsilon = args.epsilon / 255
-        self.norm = args.norm
-        self.alpha = args.pgd_alpha / 255
-        self.iters = args.attack_iters
+    def __init__(self, args, model, epsilon=None, norm=None, alpha=None, iters=None):
+        self.epsilon = args.epsilon / 255 if epsilon is None else epsilon
+        self.norm = args.norm if norm is None else norm
+        self.alpha = args.pgd_alpha / 255 if alpha is None else alpha
+        self.iters = args.attack_iters if iters is None else iters
         self.model = model
         self.args = args
 
@@ -122,5 +122,34 @@ class PGD(Attack):
             early_stop=early_stop,
             loss_fn=loss_fn,
             init_mode=init_mode,
+            args=self.args,
+        )
+
+
+class PGD_Test(Attack):
+    '''
+    Used during training for test
+    '''
+    def __init__(self, args, model, epsilon=None, norm=None, alpha=None, iters=None):
+        self.epsilon = args.epsilon / 255 if epsilon is None else epsilon
+        self.norm = args.norm if norm is None else norm
+        self.alpha = args.pgd_alpha / 255 if alpha is None else alpha
+        self.iters = args.attack_iters if iters is None else iters
+        self.model = model
+        self.args = args
+
+    def perturb(
+        self, inputs, labels=None, loss_fn=None, early_stop=False, init_mode="pgd"
+    ):
+        return inputs + attack_pgd(
+            self.model,
+            inputs,
+            labels,
+            self.epsilon,
+            self.alpha,
+            self.iters,
+            1,
+            self.norm,
+            early_stop=early_stop,
             args=self.args,
         )

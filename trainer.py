@@ -11,6 +11,7 @@ import logging
 
 from datasets.base import Dataset
 from utils import AverageMeter
+from attacks import PGD_Test
 
 
 class Trainer:
@@ -38,6 +39,11 @@ class Trainer:
 
         self.best_acc = -1
         self.best_epoch = -1
+
+        if args.norm == "l_inf":
+            self.test_attack = PGD_Test(args, model, iters=20)
+        elif args.norm == "l2":
+            pass
 
     def save_model(self, epoch, adv_acc=None, nat_acc=None):
         torch.save(
@@ -139,7 +145,7 @@ class Trainer:
             data, label = data.cuda(), label.cuda()
 
             output, adv_output, loss, adv_loss, total_loss = self.defense.test(
-                data, label
+                data, label, self.test_attack
             )
 
             pred = torch.max(output, dim=1)[1]
