@@ -23,11 +23,13 @@ class AT(Defense):
         output = self.model(data)
         loss = F.cross_entropy(output, label)
 
+        is_model_training = self.model.training
         self.model.eval()
         adv_data = self.attack.perturb(
             data, label, loss_fn=self.inner_loss_fn, init_mode=self.init_mode
         ).detach()
-        self.model.train()
+        if is_model_training:
+            self.model.train()
         adv_output = self.model(adv_data)
         adv_loss = self.outer_loss_fn(adv_output, label, output)
 
