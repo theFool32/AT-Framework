@@ -24,6 +24,7 @@ linf_base_config = {
 linf_AT_config = {
     **linf_base_config,
     "attack": "pgd",
+    "defense": "at",
     "inner_loss": "CE",
     "outer_loss": "CE",
     "attack_iters": 10,

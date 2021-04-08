@@ -6,7 +6,6 @@ import logging
 import os
 import numpy as np
 import torch
-from tensorboardX import SummaryWriter
 
 from trainer import Trainer
 from models import get_network
@@ -41,13 +40,15 @@ def get_args():
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--eval", action="store_true")
+    parser.add_argument("--tensorboard", action="store_true")
+    parser.add_argument("--project", default="AT-Framework", type=str)
     parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     import configs
+
     try:
         config = getattr(configs, args.config + "_config")
         args = vars(args)
@@ -56,15 +57,16 @@ def get_args():
     except Exception:
         raise NotImplementedError(f"No such configuration: {args.config}")
     args.checkpoints = args.fname + "_checkpoints"
+
+    # current_time = time.ctime()
+    current_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+    args.fname = args.fname + "/" + current_time
+    args.checkpoints = args.checkpoints + "/" + current_time
     return args
 
 
 def main():
     args = get_args()
-
-    current_time = time.ctime()
-    args.fname = args.fname + "/" + current_time
-    args.checkpoints = args.checkpoints + "/" + current_time
 
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
@@ -85,7 +87,20 @@ def main():
     )
     logger.info(args)
     logger.info(git_version())
-    writer = SummaryWriter(args.fname)
+
+    if args.tensorboard:
+        from tensorboardX import SummaryWriter
+
+        writer = SummaryWriter(args.fname)
+    else:
+        import wandb
+
+        wandb.init(
+            project=args.project,
+            name=args.fname.replace("/", "_"),
+            config=args.__dict__,
+        )
+        writer = None
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
