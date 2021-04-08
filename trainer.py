@@ -132,8 +132,8 @@ class Trainer:
                     "train/nat_acc": nat_acc_meter.avg,
                     "train/adv_loss": adv_loss_meter.avg,
                     "train/adv_acc": adv_acc_meter.avg,
+                    "epoch": epoch,
                 },
-                step=epoch,
                 commit=True
             )
 
@@ -198,8 +198,8 @@ class Trainer:
                     "test/nat_acc": nat_acc_meter.avg,
                     "test/adv_loss": adv_loss_meter.avg,
                     "test/adv_acc": adv_acc_meter.avg,
+                    "epoch": epoch,
                 },
-                step=epoch,
                 commit=True
             )
 
