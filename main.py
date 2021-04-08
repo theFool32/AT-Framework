@@ -41,6 +41,7 @@ def get_args():
     parser.add_argument("--fname", type=str)
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
+    parser.add_argument("--no-apex", action="store_true")
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
@@ -113,6 +114,13 @@ def main():
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
         opt, milestones=[100, 105], gamma=0.1
     )
+
+    if not args.no_apex:
+        from apex import amp
+
+        model, opt = amp.initialize(model, opt, opt_level='O1', loss_scale=1.0, verbosity=False)
+        args.opt = opt
+        args.amp = amp
 
     attack = PGD(args, model=model)
     defense = get_defense(args, model, attack)

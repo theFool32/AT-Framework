@@ -91,7 +91,11 @@ class Trainer:
                 adv_acc = (adv_pred == label).sum().item()
 
             self.opt.zero_grad()
-            total_loss.backward()
+            if not self.args.no_apex:
+                with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                total_loss.backward()
             self.opt.step()
 
             nat_loss_meter.update(loss)
@@ -107,18 +111,10 @@ class Trainer:
                 self.logger.info(msg)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
-        self.writer.add_scalar(
-            "train/nat_loss", nat_loss_meter.avg, global_step=epoch
-        )
-        self.writer.add_scalar(
-            "train/nat_acc", nat_acc_meter.avg, global_step=epoch
-        )
-        self.writer.add_scalar(
-            "train/adv_loss", adv_loss_meter.avg, global_step=epoch
-        )
-        self.writer.add_scalar(
-            "train/adv_acc", adv_acc_meter.avg, global_step=epoch
-        )
+        self.writer.add_scalar("train/nat_loss", nat_loss_meter.avg, global_step=epoch)
+        self.writer.add_scalar("train/nat_acc", nat_acc_meter.avg, global_step=epoch)
+        self.writer.add_scalar("train/adv_loss", adv_loss_meter.avg, global_step=epoch)
+        self.writer.add_scalar("train/adv_acc", adv_acc_meter.avg, global_step=epoch)
 
     def train(self):
         self.model.train()
@@ -163,13 +159,9 @@ class Trainer:
         self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc}")
         self.logger.info("=" * 70)
 
-        self.writer.add_scalar(
-            "test/nat_loss", nat_loss_meter.avg, global_step=epoch
-        )
+        self.writer.add_scalar("test/nat_loss", nat_loss_meter.avg, global_step=epoch)
         self.writer.add_scalar("test/nat_acc", nat_acc_meter.avg, global_step=epoch)
-        self.writer.add_scalar(
-            "test/adv_loss", adv_loss_meter.avg, global_step=epoch
-        )
+        self.writer.add_scalar("test/adv_loss", adv_loss_meter.avg, global_step=epoch)
         self.writer.add_scalar("test/adv_acc", adv_acc_meter.avg, global_step=epoch)
         self.writer.flush()
 

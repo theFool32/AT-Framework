@@ -26,6 +26,7 @@ def attack_pgd(
     early_stop=False,
     loss_fn=None,
     init_mode="pgd",
+    args=None,
 ):
     max_loss = torch.zeros(y.shape[0]).cuda()
     max_delta = torch.zeros_like(X).cuda()
@@ -68,7 +69,11 @@ def attack_pgd(
             if not isinstance(index, slice) and len(index) == 0:
                 break
             loss = loss_fn(output, y, nat_output)
-            loss.backward()
+            if not args.no_apex:
+                with args.amp.scale_loss(loss, args.opt) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
             grad = delta.grad.detach()
             d = delta[index, :, :, :]
             g = grad[index, :, :, :]
@@ -99,8 +104,8 @@ class PGD(Attack):
         self.norm = args.norm
         self.alpha = args.pgd_alpha / 255
         self.iters = args.attack_iters
-
         self.model = model
+        self.args = args
 
     def perturb(
         self, inputs, labels=None, loss_fn=None, early_stop=False, init_mode="pgd"
@@ -116,5 +121,6 @@ class PGD(Attack):
             self.norm,
             early_stop=early_stop,
             loss_fn=loss_fn,
-            init_mode=init_mode
+            init_mode=init_mode,
+            args=self.args,
         )
