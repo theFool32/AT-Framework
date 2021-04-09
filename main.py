@@ -24,7 +24,7 @@ def get_args():
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
     parser.add_argument("--max-epoch", type=int)
-    parser.add_argument("--epoch", type=int)
+    parser.add_argument("--epoch", default=1, type=int)
     parser.add_argument("--defense", type=str)
     parser.add_argument("--attack", type=str, choices=["pgd", "fgsm", "free", "none"])
     parser.add_argument("--inner-loss", type=str)
