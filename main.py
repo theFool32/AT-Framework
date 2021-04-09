@@ -7,8 +7,6 @@ import os
 import numpy as np
 import torch
 
-from tensorboardX import SummaryWriter
-
 from trainer import Trainer
 from models import get_network
 from datasets import get_dataset
@@ -41,6 +39,7 @@ def get_args():
     parser.add_argument("--fname", type=str)
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
+    parser.add_argument("--tensorboard", action="store_true")
     parser.add_argument("--no-apex", action="store_true")
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--gpu", default="0", type=str)
@@ -95,7 +94,20 @@ def main():
     logger.info(args)
     logger.info(git_version())
 
-    writer = SummaryWriter(args.fname)
+    if args.tensorboard:
+        from tensorboardX import SummaryWriter
+
+        writer = SummaryWriter(args.fname)
+    else:
+        import wandb
+
+        wandb.init(
+            project=args.project,
+            name=args.fname.replace("/", "_"),
+            config=args.__dict__,
+            settings=wandb.Settings(_disable_stats=True),
+        )
+        writer = None
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -112,7 +124,8 @@ def main():
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        opt, milestones=[100, 105], gamma=0.1
+        # opt, milestones=[100, 105], gamma=0.1
+        opt, milestones=[75, 90], gamma=0.1
     )
 
     if not args.no_apex:

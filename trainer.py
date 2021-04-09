@@ -9,6 +9,8 @@ import torch
 from torch.nn import functional as F
 import logging
 
+import wandb
+
 from datasets.base import Dataset
 from utils import AverageMeter
 from attacks import PGD_Test
@@ -57,6 +59,10 @@ class Trainer:
         if adv_acc is not None and adv_acc > self.best_acc:
             self.best_acc = adv_acc
             self.best_epoch = epoch
+            if not self.args.tensorboard:
+                wandb.run.summary["best_adv_acc"] = adv_acc
+                if nat_acc is not None:
+                    wandb.run.summary["best_nat_acc"] = nat_acc
 
             target = os.path.abspath(
                 os.path.join(self.args.checkpoints, f"model_{epoch}.pth")
@@ -117,10 +123,29 @@ class Trainer:
                 self.logger.info(msg)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
-        self.writer.add_scalar("train/nat_loss", nat_loss_meter.avg, global_step=epoch)
-        self.writer.add_scalar("train/nat_acc", nat_acc_meter.avg, global_step=epoch)
-        self.writer.add_scalar("train/adv_loss", adv_loss_meter.avg, global_step=epoch)
-        self.writer.add_scalar("train/adv_acc", adv_acc_meter.avg, global_step=epoch)
+        if self.args.tensorboard:
+            self.writer.add_scalar(
+                "train/nat_loss", nat_loss_meter.avg, global_step=epoch
+            )
+            self.writer.add_scalar(
+                "train/nat_acc", nat_acc_meter.avg, global_step=epoch
+            )
+            self.writer.add_scalar(
+                "train/adv_loss", adv_loss_meter.avg, global_step=epoch
+            )
+            self.writer.add_scalar(
+                "train/adv_acc", adv_acc_meter.avg, global_step=epoch
+            )
+        else:
+            wandb.log(
+                {
+                    "train/nat_loss": nat_loss_meter.avg,
+                    "train/nat_acc": nat_acc_meter.avg,
+                    "train/adv_loss": adv_loss_meter.avg,
+                    "train/adv_acc": adv_acc_meter.avg,
+                    "epoch": epoch,
+                }
+            )
 
     def train(self):
         self.model.train()
@@ -165,11 +190,28 @@ class Trainer:
         self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc}")
         self.logger.info("=" * 70)
 
-        self.writer.add_scalar("test/nat_loss", nat_loss_meter.avg, global_step=epoch)
-        self.writer.add_scalar("test/nat_acc", nat_acc_meter.avg, global_step=epoch)
-        self.writer.add_scalar("test/adv_loss", adv_loss_meter.avg, global_step=epoch)
-        self.writer.add_scalar("test/adv_acc", adv_acc_meter.avg, global_step=epoch)
-        self.writer.flush()
+        if self.args.tensorboard:
+            self.writer.add_scalar(
+                "test/nat_loss", nat_loss_meter.avg, global_step=epoch
+            )
+            self.writer.add_scalar("test/nat_acc", nat_acc_meter.avg, global_step=epoch)
+            self.writer.add_scalar(
+                "test/adv_loss", adv_loss_meter.avg, global_step=epoch
+            )
+            self.writer.add_scalar("test/adv_acc", adv_acc_meter.avg, global_step=epoch)
+            self.writer.flush()
+        else:
+            wandb.run.summary["last_nat_acc"] = nat_acc_meter.avg
+            wandb.run.summary["last_adv_acc"] = adv_acc_meter.avg
+            wandb.log(
+                {
+                    "test/nat_loss": nat_loss_meter.avg,
+                    "test/nat_acc": nat_acc_meter.avg,
+                    "test/adv_loss": adv_loss_meter.avg,
+                    "test/adv_acc": adv_acc_meter.avg,
+                    "epoch": epoch,
+                }
+            )
 
     def val(self):
         self.model.eval()
