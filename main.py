@@ -40,6 +40,7 @@ def get_args():
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--tensorboard", action="store_true")
+    parser.add_argument("--project", default="AT-Framework", type=str)
     parser.add_argument("--no-apex", action="store_true")
     parser.add_argument("--eval", action="store_true")
     parser.add_argument("--gpu", default="0", type=str)
@@ -128,6 +129,12 @@ def main():
         opt, milestones=[75, 90], gamma=0.1
     )
 
+    if args.resume_checkpoint != "":
+        state = torch.load(args.resume_checkpoint)
+        model.load_state_dict(state["state_dict"])
+        opt.load_state_dict(state["optimizer"])
+        args.epoch = state["epoch"] + 1
+
     if not args.no_apex:
         from apex import amp
 
@@ -137,12 +144,6 @@ def main():
 
     attack = PGD(args, model=model)
     defense = get_defense(args, model, attack)
-
-    if args.resume_checkpoint != "":
-        state = torch.load(args.resume_checkpoint)
-        model.load_state_dict(state["state_dict"])
-        opt.load_state_dict(state["optimizer"])
-        args.epoch = state["epoch"]
 
     trainer = Trainer(
         args=args,
@@ -156,6 +157,9 @@ def main():
         defense=defense,
     )
     trainer.train()
+
+    if not args.tensorboard:
+        wandb.finish()
 
 
 if __name__ == "__main__":
