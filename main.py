@@ -98,7 +98,7 @@ def main():
     if args.tensorboard:
         from tensorboardX import SummaryWriter
 
-        writer = SummaryWriter(args.fname)
+        writer = SummaryWriter(args.fname[8:])
     else:
         import wandb
 
@@ -125,8 +125,8 @@ def main():
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        # opt, milestones=[100, 105], gamma=0.1
-        opt, milestones=[75, 90], gamma=0.1
+        opt, milestones=[100, 105], gamma=0.1
+        # opt, milestones=[75, 90], gamma=0.1
     )
 
     if args.resume_checkpoint != "":

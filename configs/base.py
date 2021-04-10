@@ -5,9 +5,9 @@ from torchvision.transforms.transforms import Lambda
 
 base_config = {
     "log_step": 100,
-    "max_epoch": 100,
+    "max_epoch": 110,
     "batch_size": 128,
-    "save_checkpoints": lambda epoch: epoch % 10 == 0 or epoch >= 70,
+    "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 100,
 }
 
 linf_base_config = {
