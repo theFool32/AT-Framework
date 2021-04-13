@@ -104,7 +104,7 @@ def main():
 
         wandb.init(
             project=args.project,
-            name=args.fname.replace("/", "_"),
+            name=args.fname.replace("/", "_")[8:],
             config=args.__dict__,
             settings=wandb.Settings(_disable_stats=True),
         )
@@ -125,7 +125,9 @@ def main():
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        opt, milestones=[100, 105], gamma=0.1
+        opt,
+        milestones=[100, 105],
+        gamma=0.1
         # opt, milestones=[75, 90], gamma=0.1
     )
 
@@ -138,7 +140,9 @@ def main():
     if not args.no_apex:
         from apex import amp
 
-        model, opt = amp.initialize(model, opt, opt_level='O1', loss_scale=1.0, verbosity=False)
+        model, opt = amp.initialize(
+            model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
+        )
         args.opt = opt
         args.amp = amp
 
