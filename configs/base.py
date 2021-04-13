@@ -7,6 +7,7 @@ base_config = {
     "log_step": 100,
     "max_epoch": 110,
     "batch_size": 128,
+    "lr_adjust": "100,105",
     "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 100,
 }
 

@@ -10,10 +10,10 @@ import torch
 from trainer import Trainer
 from models import get_network
 from datasets import get_dataset
-from attacks import *
+from attacks import get_attack
 from utils import git_version
 from utils import Parameters
-from defenses import *
+from defenses import get_defense
 
 
 def get_args():
@@ -26,11 +26,12 @@ def get_args():
     parser.add_argument("--max-epoch", type=int)
     parser.add_argument("--epoch", default=1, type=int)
     parser.add_argument("--defense", type=str)
-    parser.add_argument("--attack", type=str, choices=["pgd", "fgsm", "free", "none"])
+    parser.add_argument("--attack", type=str)
     parser.add_argument("--inner-loss", type=str)
     parser.add_argument("--outer-loss", type=str)
     parser.add_argument("--log-step", type=int)
     parser.add_argument("--lr", type=float)
+    parser.add_argument("--lr-adjust", type=str)
     parser.add_argument("--weight-decay", type=float)
     parser.add_argument("--epsilon", type=int)
     parser.add_argument("--attack-iters", type=int)
@@ -42,7 +43,6 @@ def get_args():
     parser.add_argument("--tensorboard", action="store_true")
     parser.add_argument("--project", default="AT-Framework", type=str)
     parser.add_argument("--no-apex", action="store_true")
-    parser.add_argument("--eval", action="store_true")
     parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
 
@@ -92,8 +92,6 @@ def main():
             logging.StreamHandler(),
         ],
     )
-    logger.info(args)
-    logger.info(git_version())
 
     if args.tensorboard:
         from tensorboardX import SummaryWriter
@@ -109,6 +107,8 @@ def main():
             settings=wandb.Settings(_disable_stats=True),
         )
         writer = None
+    logger.info(args)
+    logger.info(git_version())
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -126,7 +126,7 @@ def main():
     )
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
         opt,
-        milestones=[100, 105],
+        milestones=[int(v) for v in args.lr_adjust.split(",")],
         gamma=0.1
         # opt, milestones=[75, 90], gamma=0.1
     )
@@ -146,7 +146,7 @@ def main():
         args.opt = opt
         args.amp = amp
 
-    attack = PGD(args, model=model)
+    attack = get_attack(args, model=model)
     defense = get_defense(args, model, attack)
 
     trainer = Trainer(
