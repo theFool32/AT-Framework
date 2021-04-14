@@ -43,7 +43,7 @@ class Trainer:
         self.best_epoch = -1
 
         if args.norm == "l_inf":
-            self.test_attack = PGD_Test(args, model, iters=20)
+            self.test_attack = PGD_Test(args, model, iters=10)
         elif args.norm == "l2":
             pass
 

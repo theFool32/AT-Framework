@@ -31,7 +31,6 @@ class AT(Defense):
         if is_model_training:
             self.model.train()
         adv_output = self.model(adv_data)
-        __import__("ipdb").set_trace()
         adv_loss = self.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss

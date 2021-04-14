@@ -17,11 +17,19 @@ __all__ = ["eval"]
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="PreActResNet18")
+    parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("--dataset", default="cifar10", type=str)
     parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
+    parser.add_argument(
+        "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
+    )
+    parser.add_argument("--epsilon", default=8, type=int)
+    parser.add_argument("--attack-iters", default=20, type=int)
+    parser.add_argument("--pgd-alpha", default=2, type=float)
     parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--checkpoint", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
+    parser.add_argument("--no-apex", default=True, type=bool)
     args = parser.parse_args()
     return args
 

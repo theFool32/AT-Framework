@@ -165,8 +165,8 @@ def main():
     )
     trainer.train()
 
-    logger.info("Begin evaluating")
-    eval(model, args, dataset, logger)
+    # logger.info("Begin evaluating last")
+    # eval(model, args, dataset, logger)
 
     if not args.tensorboard:
         wandb.finish()
