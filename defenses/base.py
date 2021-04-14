@@ -13,6 +13,9 @@ class Defense(metaclass=ABCMeta):
     def train(self, data, label):
         pass
 
+    def postprocess(self, epoch):
+        pass
+
     def test(self, data, label, test_attack=None):
         self.model.eval()
         attack = self.attack

@@ -4,6 +4,7 @@ from .at import AT
 from .trades import TRADES
 from .mart import MART
 from .awp import AWP
+from .swa import SWA
 from .no_defense import NoDefense
 
 
@@ -25,5 +26,11 @@ def get_defense(args, model, attack, defense_name=None):
             args, model, attack, defense_name=inner_defense_name
         )
         return AWP(model, attack, args, inner_defense)
+    elif defense_method.startswith("swa"):
+        inner_defense_name = defense_method[4:]
+        inner_defense = get_defense(
+            args, model, attack, defense_name=inner_defense_name
+        )
+        return SWA(model, attack, args, inner_defense)
     else:
         raise NotImplementedError(f"Defense not implemented: {defense_method}")

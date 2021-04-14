@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import random
 import argparse
 import time
 import logging
@@ -81,17 +82,6 @@ def main():
     if not os.path.exists(args.checkpoints):
         os.makedirs(args.checkpoints)
 
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(
-        format="[%(asctime)s] - %(message)s",
-        datefmt="%Y/%m/%d %H:%M:%S",
-        level=logging.DEBUG,
-        handlers=[
-            logging.FileHandler(os.path.join(args.fname, "output.log")),
-            logging.StreamHandler(),
-        ],
-    )
-
     if args.tensorboard:
         from tensorboardX import SummaryWriter
 
@@ -106,9 +96,22 @@ def main():
             settings=wandb.Settings(_disable_stats=True),
         )
         writer = None
+
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(
+        format="[%(asctime)s] - %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+        level=logging.DEBUG,
+        handlers=[
+            logging.FileHandler(os.path.join(args.fname, "output.log")),
+            logging.StreamHandler(),
+        ],
+    )
+
     logger.info(args)
     logger.info(git_version())
 
+    random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
@@ -117,6 +120,7 @@ def main():
 
     args.mean = dataset.mean
     args.std = dataset.std
+    args.dataset = dataset
     model = get_network(args)
 
     opt = torch.optim.SGD(
@@ -141,8 +145,9 @@ def main():
         model, opt = amp.initialize(
             model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
         )
-        args.opt = opt
         args.amp = amp
+
+    args.opt = opt
 
     attack = get_attack(args, model=model)
     defense = get_defense(args, model, attack)

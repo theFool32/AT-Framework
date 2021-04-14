@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from torch.random import initial_seed
 from .base import Attack
 
 import torch

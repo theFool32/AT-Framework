@@ -74,7 +74,7 @@ class AWP(Defense):
         super(AWP, self).__init__(_model, _attack, _args)
         try:
             loss_fn = inner_defense.inner_loss_fn
-        except:
+        except Exception:
             loss_fn = get_loss_fn("CE")
 
         self.awp = AdvWeightPerturb(

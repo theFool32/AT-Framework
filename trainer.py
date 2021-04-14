@@ -154,6 +154,7 @@ class Trainer:
             if self.scheduler is not None:
                 self.scheduler.step()
             self.train_one_epoch(epoch)
+            self.defense.postprocess(epoch)
             if self.args.save_checkpoints is not None and self.args.save_checkpoints(
                 epoch
             ):

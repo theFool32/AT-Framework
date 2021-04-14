@@ -20,6 +20,8 @@ cifar10_linf_MART_config = {
     "fname": "cifar10_linf_MART",
 }
 
+# ====================================
+# AWP
 cifar10_linf_AWP_AT_config = {
     **base.linf_AT_config,
     **base.linf_AWP_config,
@@ -39,4 +41,13 @@ cifar10_linf_AWP_MART_config = {
     **base.linf_AWP_config,
     "dataset": "cifar10",
     "fname": "cifar10_linf_AWP_MART",
+}
+
+# ====================================
+# SWA
+cifar10_linf_SWA_AT_config = {
+    **base.linf_AT_config,
+    **base.linf_SWA_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_linf_SWA_AT",
 }
