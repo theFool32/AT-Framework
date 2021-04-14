@@ -11,12 +11,12 @@ from losses import get_loss_fn
 
 
 class AT(Defense):
-    def __init__(self, _model, _attack, **kw):
-        super(AT, self).__init__(_model, _attack, **kw)
-        self.inner_loss_fn = get_loss_fn(kw["inner_loss"])
-        self.outer_loss_fn = get_loss_fn(kw["outer_loss"])
+    def __init__(self, _model, _attack, _args):
+        super(AT, self).__init__(_model, _attack, _args)
+        self.inner_loss_fn = get_loss_fn(_args.inner_loss)
+        self.outer_loss_fn = get_loss_fn(_args.outer_loss)
         self.init_mode = "pgd"
-        if kw["defense"] == "trades":
+        if _args.defense == "trades":
             self.init_mode = "trades"
 
     def train(self, data, label):

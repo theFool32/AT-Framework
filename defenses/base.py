@@ -4,9 +4,10 @@ from abc import ABCMeta, abstractmethod
 
 
 class Defense(metaclass=ABCMeta):
-    def __init__(self, _model, _attack, **kw):
+    def __init__(self, _model, _attack, _args):
         self.model = _model
         self.attack = _attack
+        self.args = _args
 
     @abstractmethod
     def train(self, data, label):

@@ -150,6 +150,7 @@ class Trainer:
     def train(self):
         self.model.train()
         for epoch in range(self.args.epoch, self.args.max_epoch + 1):
+            self.args.epoch = epoch
             if self.scheduler is not None:
                 self.scheduler.step()
             self.train_one_epoch(epoch)

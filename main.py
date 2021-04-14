@@ -14,6 +14,7 @@ from attacks import get_attack
 from utils import git_version
 from utils import Parameters
 from defenses import get_defense
+from test import eval
 
 
 def get_args():
@@ -86,9 +87,7 @@ def main():
         datefmt="%Y/%m/%d %H:%M:%S",
         level=logging.DEBUG,
         handlers=[
-            logging.FileHandler(
-                os.path.join(args.fname, "eval.log" if args.eval else "output.log")
-            ),
+            logging.FileHandler(os.path.join(args.fname, "output.log")),
             logging.StreamHandler(),
         ],
     )
@@ -120,7 +119,6 @@ def main():
     args.std = dataset.std
     model = get_network(args)
 
-    # TODO:
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
@@ -161,6 +159,9 @@ def main():
         defense=defense,
     )
     trainer.train()
+
+    logger.info("Begin evaluating")
+    eval(model, args, dataset, logger)
 
     if not args.tensorboard:
         wandb.finish()
