@@ -5,8 +5,10 @@ from collections import OrderedDict
 import copy
 import sys
 
-from .base import Defense
 import torch
+from torch.nn import functional as F
+
+from .base import Defense
 
 sys.path.insert(0, "..")
 from losses import get_loss_fn
@@ -81,14 +83,45 @@ class AWP(Defense):
         self.defense = inner_defense
 
     def train(self, data, label):
-        diff = self.awp.calc_awp(data, label)
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
+
+        is_model_training = self.model.training
+        self.model.eval()
+        adv_data = self.attack.perturb(
+            data, label, loss_fn=self.defense.inner_loss_fn, init_mode=self.defense.init_mode
+        ).detach()
+        if is_model_training:
+            self.model.train()
+
+        diff = self.awp.calc_awp(adv_data, label)
         self.awp.perturb(diff)
 
-        back = self.defense.train(data, label)
+        adv_output = self.model(adv_data)
+        adv_loss = self.defense.outer_loss_fn(adv_output, label, output)
+
+        total_loss = adv_loss
+        self.args.opt.zero_grad()
+        if not self.args.no_amp:
+            self.args.scaler.scale(total_loss).backward()
+            self.args.scaler.step(self.args.opt)
+            self.args.scaler.update()
+        else:
+            total_loss.backward()
+            self.args.opt.step()
 
         self.awp.restore(diff)
 
-        return back
+        _ = torch.zeros_like(total_loss)
+        _.requires_grad_(True)
+
+        return (
+            output.detach(),
+            adv_output.detach(),
+            loss.item(),
+            adv_loss.item(),
+            total_loss.detach() + _,
+        )
 
     def test(self, data, label, test_attack=None):
         return self.defense.test(data, label, test_attack)

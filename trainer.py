@@ -43,9 +43,9 @@ class Trainer:
         self.best_epoch = -1
 
         if args.norm == "l_inf":
-            self.test_attack = PGD_Test(args, model, iters=10)
+            self.test_attack = PGD_Test(args, model, iters=20)
         elif args.norm == "l2":
-            pass
+            raise NotImplementedError("L2 test attack")
 
     def save_model(self, epoch, adv_acc=None, nat_acc=None):
         torch.save(
