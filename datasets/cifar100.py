@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 
-from collections import namedtuple
-
 import torch
 from torchvision import datasets
 from torch.utils import data
 from torchvision import transforms
-from torch import Tensor
-import numpy as np
 
 from .base import Dataset
 
 
-class Cifar10(Dataset):
-    num_classes = 10
+class Cifar100(Dataset):
+    num_classes = 100
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(
             [
                 transforms.RandomCrop(32, padding=4, padding_mode="reflect"),
                 transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(15),
                 transforms.ToTensor(),
             ]
         )
@@ -29,10 +26,10 @@ class Cifar10(Dataset):
             ]
         )
 
-        self._train_dataset = datasets.CIFAR10(
+        self._train_dataset = datasets.CIFAR100(
             root=root, train=True, download=True, transform=train_transform
         )
-        self._test_dataset = datasets.CIFAR10(
+        self._test_dataset = datasets.CIFAR100(
             root=root, train=False, download=True, transform=test_transform
         )
 
@@ -65,14 +62,17 @@ class Cifar10(Dataset):
 
     @property
     def mean(self):
-        return torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
+        # https://github.com/csdongxian/AWP/blob/main/AT_AWP/train_cifar100.py
+        return (
+            torch.tensor((0.5070751592371323, 0.48654887331495095, 0.4409178433670343))
+            .view(3, 1, 1)
+            .cuda()
+        )
 
     @property
     def std(self):
-        return torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
-
-
-if __name__ == "__main__":
-    cifar10 = Cifar10("~/datasets/cifar10")
-    assert len(cifar10.train_loader.dataset) == 50000
-    assert len(cifar10.test_loader.dataset) == 10000
+        return (
+            torch.tensor((0.2673342858792401, 0.2564384629170883, 0.27615047132568404))
+            .view(3, 1, 1)
+            .cuda()
+        )

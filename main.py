@@ -24,7 +24,7 @@ def get_args():
     parser.add_argument("--model", default="PreActResNet18")
     parser.add_argument("--batch-size", type=int)
     parser.add_argument("--dataset", type=str)
-    parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
+    parser.add_argument("--data-dir", default="~/datasets/", type=str)
     parser.add_argument("--max-epoch", type=int)
     parser.add_argument("--epoch", default=1, type=int)
     parser.add_argument("--defense", type=str)
@@ -59,6 +59,8 @@ def get_args():
         args = Parameters(args)
     except Exception:
         raise NotImplementedError(f"No such configuration: {args.config}")
+
+    args.data_dir = f"{args.data_dir}/{args.dataset}"
 
     args.fname = args.fname + "_" + args.model
     args.checkpoints = args.fname + "_checkpoints"

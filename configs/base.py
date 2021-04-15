@@ -16,7 +16,15 @@ linf_base_config = {
     "norm": "l_inf",
 }
 
+l2_base_config = {
+    **base_config,
+    "lr": 1e-1,
+    "weight_decay": 5e-4,
+    "epsilon": 128,
+    "norm": "l_2",
+}
 
+# ==========================================
 linf_AT_config = {
     **linf_base_config,
     "attack": "pgd",
@@ -43,6 +51,34 @@ linf_MART_config = {
     "outer_loss": "mart_outer",
 }
 
+
+l2_AT_config = {
+    **l2_base_config,
+    "attack": "pgd",
+    "defense": "at",
+    "inner_loss": "CE",
+    "outer_loss": "CE",
+    "attack_iters": 10,
+    "pgd_alpha": 15,
+}
+
+l2_TRADES_config = {
+    **l2_AT_config,
+    "defense": "trades",
+    "attack": "pgd",
+    "inner_loss": "trades_inner",
+    "outer_loss": "trades_outer",
+}
+
+l2_MART_config = {
+    **l2_AT_config,
+    "defense": "mart",
+    "attack": "pgd",
+    "inner_loss": "CE",
+    "outer_loss": "mart_outer",
+}
+
+# ==========================================
 linf_AWP_config = {
     **linf_AT_config,
     "defense": "awp_at",

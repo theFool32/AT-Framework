@@ -20,6 +20,24 @@ cifar10_linf_MART_config = {
     "fname": "cifar10_linf_MART",
 }
 
+cifar10_l2_AT_config = {
+    **base.l2_AT_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_AT",
+}
+
+cifar10_l2_TRADES_config = {
+    **base.l2_TRADES_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_TRADES",
+}
+
+cifar10_l2_MART_config = {
+    **base.l2_MART_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_MART",
+}
+
 # ====================================
 # AWP
 cifar10_linf_AWP_AT_config = {

@@ -114,8 +114,8 @@ class WideResNet(nn.Module):
         return self.fc(out)
 
 
-def WideResNet28():
-    return WideResNet(depth=28)
+def WideResNet28(num_classes=10):
+    return WideResNet(depth=28, num_classes=num_classes)
 
 
 def WideResNet34(num_classes=10):

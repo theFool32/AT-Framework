@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument("--model", default="PreActResNet18")
     parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("--dataset", default="cifar10", type=str)
-    parser.add_argument("--data-dir", default="~/datasets/cifar10", type=str)
+    parser.add_argument("--data-dir", default="~/datasets/", type=str)
     parser.add_argument(
         "--attack", default="pgd", type=str, choices=["pgd", "fgsm", "free", "none"]
     )
@@ -31,6 +31,7 @@ def get_args():
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--no-amp", default=True, type=bool)
     args = parser.parse_args()
+    args.data_dir = f"{args.data_dir}/{args.dataset}"
     return args
 
 

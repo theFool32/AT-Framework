@@ -32,11 +32,11 @@ class ModelWrap(nn.Module):
 def get_network(args):
     model_name = args.model
     if model_name == "PreActResNet18":
-        model = PreActResNet18()
+        model = PreActResNet18(num_classes=args.dataset.num_classes)
     elif model_name == "WideResNet28":
-        model = WideResNet28()
+        model = WideResNet28(num_classes=args.dataset.num_classes)
     elif model_name == "WideResNet34":
-        model = WideResNet34()
+        model = WideResNet34(num_classes=args.dataset.num_classes)
     else:
         raise NotImplementedError(f"Model not implemented: {model_name}")
 
