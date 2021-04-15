@@ -126,9 +126,10 @@ class PGD(Attack):
 
 
 class PGD_Test(Attack):
-    '''
+    """
     Used during training for test
-    '''
+    """
+
     def __init__(self, args, model, epsilon=None, norm=None, alpha=None, iters=None):
         self.epsilon = args.epsilon / 255 if epsilon is None else epsilon
         self.norm = args.norm if norm is None else norm

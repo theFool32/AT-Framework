@@ -77,9 +77,7 @@ class AWP(Defense):
         except Exception:
             loss_fn = get_loss_fn("CE")
 
-        self.awp = AdvWeightPerturb(
-            _model, loss_fn
-        )
+        self.awp = AdvWeightPerturb(_model, loss_fn)
         self.defense = inner_defense
 
     def train(self, data, label):

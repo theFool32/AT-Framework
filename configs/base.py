@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-
-from torchvision.transforms.transforms import Lambda
-
 base_config = {
     "log_step": 100,
     "max_epoch": 110,
@@ -57,4 +54,8 @@ linf_AWP_config = {
 linf_SWA_config = {
     **linf_AT_config,
     "defense": "swa_at",
+    "max_epoch": 200,
+    "lr_adjust": "50,150",
+    # "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 130,
+    "save_checkpoints": lambda epoch: True,
 }
