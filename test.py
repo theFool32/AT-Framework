@@ -29,7 +29,7 @@ def get_args():
     parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
     parser.add_argument("--checkpoint", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--no-apex", default=True, type=bool)
+    parser.add_argument("--no-amp", default=True, type=bool)
     args = parser.parse_args()
     return args
 

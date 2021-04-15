@@ -103,12 +103,13 @@ class Trainer:
                 adv_acc = (adv_pred == label).sum().item()
 
             self.opt.zero_grad()
-            if not self.args.no_apex:
-                with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
-                    scaled_loss.backward()
+            if not self.args.no_amp:
+                self.args.scaler.scale(total_loss).backward()
+                self.args.scaler.step(self.opt)
+                self.args.scaler.update()
             else:
                 total_loss.backward()
-            self.opt.step()
+                self.opt.step()
 
             nat_loss_meter.update(loss)
             nat_acc_meter.update(nat_acc / data.size(0), data.size(0))
@@ -150,6 +151,7 @@ class Trainer:
     def train(self):
         self.model.train()
         for epoch in range(self.args.epoch, self.args.max_epoch + 1):
+            self.model.test_mode(False, self.args.no_amp)
             self.args.epoch = epoch
             if self.scheduler is not None:
                 self.scheduler.step()
@@ -158,6 +160,7 @@ class Trainer:
             if self.args.save_checkpoints is not None and self.args.save_checkpoints(
                 epoch
             ):
+                self.model.test_mode(True)
                 self.test(epoch)
 
     def test(self, epoch=-1):

@@ -68,9 +68,8 @@ def attack_pgd(
             if not isinstance(index, slice) and len(index) == 0:
                 break
             loss = loss_fn(output, y, nat_output)
-            if not args.no_apex:
-                with args.amp.scale_loss(loss, args.opt) as scaled_loss:
-                    scaled_loss.backward()
+            if not args.no_amp:
+                args.scaler.scale(loss).backward()
             else:
                 loss.backward()
             grad = delta.grad.detach()

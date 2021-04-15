@@ -44,7 +44,7 @@ def get_args():
     parser.add_argument("--resume-checkpoint", default="", type=str)
     parser.add_argument("--tensorboard", action="store_true")
     parser.add_argument("--project", default="AT-Framework", type=str)
-    parser.add_argument("--no-apex", action="store_true")
+    parser.add_argument("--no-amp", action="store_true")
     parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
 
@@ -139,13 +139,10 @@ def main():
         opt.load_state_dict(state["optimizer"])
         args.epoch = state["epoch"] + 1
 
-    if not args.no_apex:
-        from apex import amp
-
-        model, opt = amp.initialize(
-            model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
-        )
-        args.amp = amp
+    if not args.no_amp:
+        from torch.cuda.amp.grad_scaler import GradScaler
+        scaler = GradScaler()
+        args.scaler = scaler
 
     args.opt = opt
 
