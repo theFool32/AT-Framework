@@ -51,7 +51,7 @@ def attack_pgd(
                 d_flat = delta.view(delta.size(0), -1)
                 n = d_flat.norm(p=2, dim=1).view(delta.size(0), 1, 1, 1)
                 r = torch.zeros_like(n).uniform_(0, 1)
-                delta *= r / n * epsilon
+                delta *= r / (n+1e-10) * epsilon
         elif init_mode == "trades":
             delta = 0.001 * torch.randn(X.shape).to(delta.device).detach()
         else:
@@ -69,7 +69,9 @@ def attack_pgd(
                 break
             loss = loss_fn(output, y, nat_output)
             if not args.no_amp:
-                args.scaler.scale(loss).backward()
+                # args.scaler.scale(loss).backward()
+                with args.amp.scale_loss(loss, args.opt) as scaled_loss:
+                    scaled_loss.backward()
             else:
                 loss.backward()
             grad = delta.grad.detach()

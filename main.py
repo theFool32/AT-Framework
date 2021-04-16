@@ -142,9 +142,15 @@ def main():
         args.epoch = state["epoch"] + 1
 
     if not args.no_amp:
-        from torch.cuda.amp.grad_scaler import GradScaler
-        scaler = GradScaler()
-        args.scaler = scaler
+        # from torch.cuda.amp.grad_scaler import GradScaler
+        # scaler = GradScaler()
+        # args.scaler = scaler
+
+        from apex import amp
+        model, opt = amp.initialize(
+            model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
+        )
+        args.amp = amp
 
     args.opt = opt
 

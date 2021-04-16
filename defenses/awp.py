@@ -83,8 +83,6 @@ class AWP(Defense):
         self.defense = inner_defense
 
     def train(self, data, label):
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
 
         is_model_training = self.model.training
         self.model.eval()
@@ -97,20 +95,26 @@ class AWP(Defense):
         diff = self.awp.calc_awp(adv_data, label)
         self.awp.perturb(diff)
 
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
         adv_output = self.model(adv_data)
         adv_loss = self.defense.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss
         self.args.opt.zero_grad()
         if not self.args.no_amp:
-            self.args.scaler.scale(total_loss).backward()
-            self.args.scaler.step(self.args.opt)
-            self.args.scaler.update()
+            # self.args.scaler.scale(total_loss).backward()
+            # self.args.scaler.step(self.args.opt)
+            # self.args.scaler.update()
+            with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+                scaled_loss.backward()
+            self.args.opt.step()
         else:
             total_loss.backward()
             self.args.opt.step()
 
         self.awp.restore(diff)
+
 
         _ = torch.zeros_like(total_loss)
         _.requires_grad_(True)

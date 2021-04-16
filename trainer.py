@@ -101,9 +101,12 @@ class Trainer:
 
             self.opt.zero_grad()
             if not self.args.no_amp:
-                self.args.scaler.scale(total_loss).backward()
-                self.args.scaler.step(self.opt)
-                self.args.scaler.update()
+                # self.args.scaler.scale(total_loss).backward()
+                # self.args.scaler.step(self.opt)
+                # self.args.scaler.update()
+                with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+                    scaled_loss.backward()
+                self.opt.step()
             else:
                 total_loss.backward()
                 self.opt.step()

@@ -22,6 +22,7 @@ class ModelWrap(nn.Module):
         return self._test_mode
 
     def forward(self, inputs):
+        return self.basic_net((inputs - self.mean) / self.std)
         if self._test_mode:
             return self.basic_net((inputs - self.mean) / self.std)
         else:
