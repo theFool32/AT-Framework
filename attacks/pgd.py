@@ -27,8 +27,8 @@ def attack_pgd(
     init_mode="pgd",
     args=None,
 ):
-    max_loss = torch.zeros(y.shape[0]).cuda()
-    max_delta = torch.zeros_like(X).cuda()
+    max_loss = torch.zeros_like(y)
+    max_delta = torch.zeros_like(X)
     init_mode = init_mode.lower()
     if loss_fn is not None:
         with torch.no_grad():
@@ -42,7 +42,7 @@ def attack_pgd(
         loss_fn = get_loss_fn("CE")
 
     for _ in range(restarts):
-        delta = torch.zeros_like(X).cuda()
+        delta = torch.zeros_like(X)
         if init_mode == "pgd":
             if norm == "l_inf":
                 delta.uniform_(-epsilon, epsilon)
@@ -53,7 +53,7 @@ def attack_pgd(
                 r = torch.zeros_like(n).uniform_(0, 1)
                 delta *= r / (n+1e-10) * epsilon
         elif init_mode == "trades":
-            delta = 0.001 * torch.randn(X.shape).to(delta.device).detach()
+            delta = 0.001 * torch.randn_like(X).detach()
         else:
             raise ValueError
         delta = clamp(delta, -X, 1 - X)

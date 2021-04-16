@@ -84,7 +84,8 @@ linf_AWP_config = {
     "defense": "awp_at",
     "max_epoch": 200,
     "lr_adjust": "100,150",
-    "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 150,
+    # "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 150,
+    "save_checkpoints": lambda epoch: True,
 }
 
 linf_SWA_config = {

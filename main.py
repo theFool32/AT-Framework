@@ -49,6 +49,7 @@ def get_args():
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    torch.backends.cudnn.benchmark = True
 
     import configs
 
