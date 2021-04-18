@@ -99,17 +99,18 @@ class Trainer:
                 adv_pred = torch.max(adv_output, dim=1)[1]
                 adv_acc = (adv_pred == label).sum().item()
 
-            self.opt.zero_grad()
-            if not self.args.no_amp:
-                # self.args.scaler.scale(total_loss).backward()
-                # self.args.scaler.step(self.opt)
-                # self.args.scaler.update()
-                with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
-                    scaled_loss.backward()
-                self.opt.step()
-            else:
-                total_loss.backward()
-                self.opt.step()
+            if isinstance(total_loss, torch.Tensor):
+                self.opt.zero_grad()
+                if not self.args.no_amp:
+                    # self.args.scaler.scale(total_loss).backward()
+                    # self.args.scaler.step(self.opt)
+                    # self.args.scaler.update()
+                    with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+                        scaled_loss.backward()
+                    self.opt.step()
+                else:
+                    total_loss.backward()
+                    self.opt.step()
 
             nat_loss_meter.update(loss)
             nat_acc_meter.update(nat_acc / data.size(0), data.size(0))

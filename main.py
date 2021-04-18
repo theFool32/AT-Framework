@@ -51,6 +51,10 @@ def get_args():
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     torch.backends.cudnn.benchmark = True
 
+    # torch.backends.cudnn.enabled = True   # 默认值
+    # torch.backends.cudnn.benchmark = False  # 默认为False
+    # torch.backends.cudnn.deterministic = True
+
     import configs
 
     try:

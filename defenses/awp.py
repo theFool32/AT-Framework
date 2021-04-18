@@ -7,6 +7,7 @@ import sys
 
 import torch
 from torch.nn import functional as F
+from apex import amp
 
 from .base import Defense
 
@@ -42,11 +43,20 @@ def add_into_weights(model, diff, coeff=1.0):
 
 
 class AdvWeightPerturb(object):
-    def __init__(self, model, loss_fn, gamma=0.01):
+    def __init__(self, model, loss_fn, gamma=0.01, no_amp=True):
         super(AdvWeightPerturb, self).__init__()
         self.model = model
         self.proxy = copy.deepcopy(model)
         self.proxy_optim = torch.optim.SGD(self.proxy.parameters(), lr=0.01)
+        self.no_amp = no_amp
+        if not no_amp:
+            self.proxy, self.proxy_optim = amp.initialize(
+                self.proxy,
+                self.proxy_optim,
+                opt_level="O1",
+                loss_scale=1.0,
+                verbosity=False,
+            )
         self.gamma = gamma
         self.loss_fn = loss_fn
 
@@ -57,7 +67,11 @@ class AdvWeightPerturb(object):
         loss = -self.loss_fn(self.proxy(inputs_adv), targets)
 
         self.proxy_optim.zero_grad()
-        loss.backward()
+        if not self.no_amp:
+            with amp.scale_loss(loss, self.proxy_optim) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
         self.proxy_optim.step()
 
         # the adversary weight perturb
@@ -79,24 +93,29 @@ class AWP(Defense):
         except Exception:
             loss_fn = get_loss_fn("CE")
 
-        self.awp = AdvWeightPerturb(_model, loss_fn)
+        self.awp = AdvWeightPerturb(_model, loss_fn, no_amp=self.args.no_amp)
         self.defense = inner_defense
 
     def train(self, data, label):
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
 
         is_model_training = self.model.training
-        self.model.eval()
+        # self.model.eval()
         adv_data = self.attack.perturb(
-            data, label, loss_fn=self.defense.inner_loss_fn, init_mode=self.defense.init_mode
+            data,
+            label,
+            loss_fn=self.defense.inner_loss_fn,
+            init_mode=self.defense.init_mode,
         ).detach()
+
         if is_model_training:
             self.model.train()
 
         diff = self.awp.calc_awp(adv_data, label)
         self.awp.perturb(diff)
 
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
+
         adv_output = self.model(adv_data)
         adv_loss = self.defense.outer_loss_fn(adv_output, label, output)
 
@@ -115,16 +134,12 @@ class AWP(Defense):
 
         self.awp.restore(diff)
 
-
-        _ = torch.zeros_like(total_loss)
-        _.requires_grad_(True)
-
         return (
             output.detach(),
             adv_output.detach(),
             loss.item(),
             adv_loss.item(),
-            total_loss.detach() + _,
+            total_loss.item(),
         )
 
     def test(self, data, label, test_attack=None):

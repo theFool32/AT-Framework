@@ -92,7 +92,8 @@ class SWA(Defense):
         if epoch > self.start_epoch:
             # TODO: magic number 4
             # 2009.10526v1
-            if epoch % 4 == 0 or epoch == self.args.max_epoch:
+            # if epoch % 4 == 0 or epoch == self.args.max_epoch:
+            if True:
                 moving_average(self.proxy_model, self.model, 1.0 / (self.swa_n + 1))
                 self.swa_n += 1
                 bn_update(self.args.dataset.train_loader, self.proxy_model)
