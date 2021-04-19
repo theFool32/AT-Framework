@@ -14,8 +14,8 @@ from datasets import get_dataset
 from attacks import get_attack
 from utils import git_version
 from utils import Parameters
+from utils import Lr_schedule
 from defenses import get_defense
-from test import eval
 
 
 def get_args():
@@ -133,11 +133,8 @@ def main():
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        opt,
-        milestones=[int(v) for v in args.lr_adjust.split(",")],
-        gamma=0.1
-        # opt, milestones=[75, 90], gamma=0.1
+    scheduler = Lr_schedule(
+        opt, milestones=[int(v) for v in args.lr_adjust.split(",")], gamma=0.1
     )
 
     if args.resume_checkpoint != "":
@@ -152,6 +149,7 @@ def main():
         # args.scaler = scaler
 
         from apex import amp
+
         model, opt = amp.initialize(
             model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
         )

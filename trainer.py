@@ -154,10 +154,10 @@ class Trainer:
         for epoch in range(self.args.epoch, self.args.max_epoch + 1):
             self.model.test_mode(False, self.args.no_amp)
             self.args.epoch = epoch
-            if self.scheduler is not None:
-                self.scheduler.step()
             self.train_one_epoch(epoch)
             self.defense.postprocess(epoch)
+            if self.scheduler is not None:
+                self.scheduler.step(epoch)
             if self.args.save_checkpoints is not None and self.args.save_checkpoints(
                 epoch
             ):
