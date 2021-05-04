@@ -71,6 +71,7 @@ def bn_update(loader, model):
 
 
 class SWA(Defense):
+    # Under construction.
     def __init__(self, _model, _attack, _args, inner_defense):
         super(SWA, self).__init__(_model, _attack, _args)
         self.defense = inner_defense
