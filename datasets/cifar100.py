@@ -10,6 +10,7 @@ from .base import Dataset
 
 class Cifar100(Dataset):
     num_classes = 100
+    dataset_name = "cifar100"
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(

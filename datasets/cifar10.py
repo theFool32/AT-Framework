@@ -14,6 +14,7 @@ from .base import Dataset
 
 class Cifar10(Dataset):
     num_classes = 10
+    dataset_name = "cifar10"
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(
