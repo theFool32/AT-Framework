@@ -5,6 +5,8 @@ import torch
 
 
 class Dataset(metaclass=ABCMeta):
+    dataset_name = ""
+
     @property
     @abstractmethod
     def train_loader(self):

@@ -10,6 +10,7 @@ from .base import Dataset
 
 class SVHN(Dataset):
     num_classes = 10
+    dataset_name = "svhn"
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(
