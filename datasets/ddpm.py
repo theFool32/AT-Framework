@@ -4,6 +4,7 @@
 import torch
 from torch.utils import data
 import numpy as np
+from torchvision.transforms import ToTensor
 
 from .base import Dataset
 
@@ -82,11 +83,12 @@ class DDPM_Dataset:
         self.ddpm_index = [1] * self.labels.shape[0] + [0] * len(
             self.base_dataset._train_dataset
         )
+        self.transform = ToTensor()
 
     def __getitem__(self, index):
         if index < self.labels.shape[0]:
-            img = self.images[index].transpose(2, 0, 1)
-            img = torch.Tensor(img)
+            img = self.images[index]
+            img = self.transform(img)
             label = self.labels[index]
             label = int(label)
         else:
