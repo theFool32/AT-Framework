@@ -6,6 +6,7 @@ from .mart import MART
 from .awp import AWP
 from .swa import SWA
 from .no_defense import NoDefense
+from .te import TE
 
 
 def get_defense(args, model, attack, defense_name=None):
@@ -32,5 +33,7 @@ def get_defense(args, model, attack, defense_name=None):
             args, model, attack, defense_name=inner_defense_name
         )
         return SWA(model, attack, args, inner_defense)
+    elif defense_method == "te":
+        return TE(model, attack, args)
     else:
         raise NotImplementedError(f"Defense not implemented: {defense_method}")
