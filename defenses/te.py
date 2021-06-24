@@ -45,8 +45,7 @@ class TE(Defense):
 
     def te_loss(self, z):
         def mse_loss(output):
-            quad_diff = torch.sum((F.softmax(output, dim=1) - F.softmax(z, dim=1)) ** 2)
-            return quad_diff / output.data.nelement()
+            return F.mse_loss(F.softmax(output, dim=1), F.softmax(z, dim=1))
 
         def _inner_loss_fn(adv_output, label, output, reduction=None):
             if reduction is None:
@@ -59,9 +58,9 @@ class TE(Defense):
 
         def _outer_loss_fn(adv_output, label, output, reduction=None):
             if reduction is None:
-                loss_1 = self.inner_loss_fn(adv_output, label, output)
+                loss_1 = self.outer_loss_fn(adv_output, label, output)
             else:
-                loss_1 = self.inner_loss_fn(
+                loss_1 = self.outer_loss_fn(
                     adv_output, label, output, reduction=reduction
                 )
             return loss_1 + self.w * mse_loss(adv_output)
