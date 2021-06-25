@@ -47,23 +47,20 @@ class TE(Defense):
         def mse_loss(output):
             return F.mse_loss(F.softmax(output, dim=1), F.softmax(z, dim=1))
 
-        def _inner_loss_fn(adv_output, label, output, reduction=None):
+        def _loss_fn(loss_fn, adv_output, label, output, reduction=None):
             if reduction is None:
-                loss_1 = self.inner_loss_fn(adv_output, label, output)
+                loss_1 = loss_fn(adv_output, label, output)
             else:
-                loss_1 = self.inner_loss_fn(
+                loss_1 = loss_fn(
                     adv_output, label, output, reduction=reduction
                 )
             return loss_1 + self.w * mse_loss(adv_output)
 
+        def _inner_loss_fn(adv_output, label, output, reduction=None):
+            return _loss_fn(self.inner_loss_fn, adv_output, label, output, reduction)
+
         def _outer_loss_fn(adv_output, label, output, reduction=None):
-            if reduction is None:
-                loss_1 = self.outer_loss_fn(adv_output, label, output)
-            else:
-                loss_1 = self.outer_loss_fn(
-                    adv_output, label, output, reduction=reduction
-                )
-            return loss_1 + self.w * mse_loss(adv_output)
+            return _loss_fn(self.outer_loss_fn, adv_output, label, output, reduction)
 
         return _inner_loss_fn, _outer_loss_fn
 
