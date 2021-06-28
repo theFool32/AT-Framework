@@ -45,7 +45,8 @@ class TE(Defense):
 
     def te_loss(self, z):
         def mse_loss(output):
-            return F.mse_loss(F.softmax(output, dim=1), F.softmax(z, dim=1))
+            return F.mse_loss(z, output)
+            # return F.mse_loss(F.softmax(output, dim=1), F.softmax(z, dim=1))
 
         def _loss_fn(loss_fn, adv_output, label, output, reduction=None):
             if reduction is None:
