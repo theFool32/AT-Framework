@@ -44,15 +44,7 @@ class Trainer:
 
         self.test_attack = PGD_Test(args, model, iters=20)
 
-    def save_model(self, epoch, adv_acc=None, nat_acc=None):
-        torch.save(
-            {
-                "state_dict": self.model.state_dict(),
-                "optimizer": self.opt.state_dict(),
-                "epoch": epoch,
-            },
-            os.path.join(self.args.checkpoints, f"model_{epoch}.pth"),
-        )
+    def save_model(self, epoch, adv_acc=None, nat_acc=None, only_best_and_last=True):
         if adv_acc is not None and adv_acc > self.best_acc:
             self.best_acc = adv_acc
             self.best_epoch = epoch
@@ -61,20 +53,49 @@ class Trainer:
                 if nat_acc is not None:
                     wandb.run.summary["best_nat_acc"] = nat_acc
 
-            target = os.path.abspath(
-                os.path.join(self.args.checkpoints, f"model_{epoch}.pth")
+        if only_best_and_last:
+            if adv_acc is not None and adv_acc > self.best_acc:
+                torch.save(
+                    {
+                        "state_dict": self.model.state_dict(),
+                        "optimizer": self.opt.state_dict(),
+                        "epoch": epoch,
+                    },
+                    os.path.join(self.args.checkpoints, f"model_best.pth"),
+                )
+            if epoch == self.args.max_epoch:
+                torch.save(
+                    {
+                        "state_dict": self.model.state_dict(),
+                        "optimizer": self.opt.state_dict(),
+                        "epoch": epoch,
+                    },
+                    os.path.join(self.args.checkpoints, f"model_last.pth"),
+                )
+        else:
+            torch.save(
+                {
+                    "state_dict": self.model.state_dict(),
+                    "optimizer": self.opt.state_dict(),
+                    "epoch": epoch,
+                },
+                os.path.join(self.args.checkpoints, f"model_{epoch}.pth"),
             )
-            link_name = os.path.abspath(
-                os.path.join(self.args.checkpoints, "model_best.pth")
-            )
-            try:
-                os.symlink(target, link_name)
-            except OSError as e:
-                if e.errno == errno.EEXIST:
-                    os.remove(link_name)
+            if adv_acc is not None and adv_acc > self.best_acc:
+                target = os.path.abspath(
+                    os.path.join(self.args.checkpoints, f"model_{epoch}.pth")
+                )
+                link_name = os.path.abspath(
+                    os.path.join(self.args.checkpoints, "model_best.pth")
+                )
+                try:
                     os.symlink(target, link_name)
-                else:
-                    raise e
+                except OSError as e:
+                    if e.errno == errno.EEXIST:
+                        os.remove(link_name)
+                        os.symlink(target, link_name)
+                    else:
+                        raise e
 
     def train_one_epoch(self, epoch):
         self.logger.info("Train_Epoch \tNat_Loss \tNat_Acc \tAdv_Loss \tAdv_Acc")
@@ -105,7 +126,9 @@ class Trainer:
                     # self.args.scaler.scale(total_loss).backward()
                     # self.args.scaler.step(self.opt)
                     # self.args.scaler.update()
-                    with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+                    with self.args.amp.scale_loss(
+                        total_loss, self.args.opt
+                    ) as scaled_loss:
                         scaled_loss.backward()
                     self.opt.step()
                 else:
@@ -190,7 +213,7 @@ class Trainer:
             adv_loss_meter.update(adv_loss)
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
-        self.save_model(epoch, adv_acc_meter.avg, nat_acc_meter.avg)
+        self.save_model(epoch, adv_acc_meter.avg, nat_acc_meter.avg, True)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
         self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc}")
