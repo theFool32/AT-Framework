@@ -43,3 +43,19 @@ svhn_l2_MART_config = {
     "dataset": "svhn",
     "fname": "svhn_l2_MART",
 }
+
+# ====================================
+# AWP
+svhn_linf_AWP_AT_config = {
+    **base.linf_AT_config,
+    **base.linf_AWP_config,
+    "dataset": "svhn",
+    "fname": "svhn_linf_AWP_AT",
+}
+
+svhn_l2_AWP_AT_config = {
+    **base.l2_AT_config,
+    **base.l2_AWP_config,
+    "dataset": "svhn",
+    "fname": "svhn_l2_AWP_AT",
+}
