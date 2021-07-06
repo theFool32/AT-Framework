@@ -86,7 +86,7 @@ linf_AWP_config = {
     "max_epoch": 200,
     "lr_adjust": "100,150",
 }
-linf_AWP_config = {
+l2_AWP_config = {
     **l2_AT_config,
     "defense": "awp_at",
     "max_epoch": 200,
