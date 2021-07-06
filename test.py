@@ -106,9 +106,12 @@ def main():
     args = get_args()
     args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
     args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
+    dataset = get_dataset(args)
+    args.mean = dataset.mean
+    args.std = dataset.std
+    args.dataset = dataset
     model = get_network(args)
     model.load_state_dict(torch.load(args.checkpoint)["state_dict"])
-    dataset = get_dataset(args)
     eval(model, args, dataset)
 
 
