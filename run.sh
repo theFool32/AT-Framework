@@ -1,133 +1,76 @@
-
-function run_linf() {
-    # cifar10
-    python3 -u main.py --model PreActResNet18 --config cifar10_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config cifar10_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config cifar10_linf_AWP_AT --project at --gpu 2 &&
-
-    python3 -u main.py --model WideResNet28 --config cifar10_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config cifar10_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config cifar10_linf_AWP_AT --project at --gpu 2 &&
-
-    # cifar100
-    python3 -u main.py --model PreActResNet18 --config cifar100_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config cifar100_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config cifar100_linf_AWP_AT --project at --gpu 2 &&
-
-    python3 -u main.py --model WideResNet28 --config cifar100_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config cifar100_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config cifar100_linf_AWP_AT --project at --gpu 2 &&
-
-    # SVHN
-    python3 -u main.py --model PreActResNet18 --config svhn_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config svhn_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model PreActResNet18 --config svhn_linf_AWP_AT --project at --gpu 2 &&
-
-    python3 -u main.py --model WideResNet28 --config svhn_linf_AT --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config svhn_linf_TRADES --project at --gpu 2 &&
-    python3 -u main.py --model WideResNet28 --config svhn_linf_AWP_AT --project at --gpu 2 &&
-
+run_PreAct() {
+    python3 -u main.py --model PreActResNet18 --config $1 --project at --gpu $2 &&
     echo "Done"
 }
 
-function run_l2() {
-    # cifar10
-    python3 -u main.py --model PreActResNet18 --config cifar10_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config cifar10_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config cifar10_l2_AWP_AT --project at --gpu 1 &&
-
-    python3 -u main.py --model WideResNet28 --config cifar10_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config cifar10_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config cifar10_l2_AWP_AT --project at --gpu 1 &&
-
-    # cifar100
-    python3 -u main.py --model PreActResNet18 --config cifar100_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config cifar100_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config cifar100_l2_AWP_AT --project at --gpu 1 &&
-
-    python3 -u main.py --model WideResNet28 --config cifar100_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config cifar100_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config cifar100_l2_AWP_AT --project at --gpu 1 &&
-
-    # SVHN
-    python3 -u main.py --model PreActResNet18 --config svhn_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config svhn_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model PreActResNet18 --config svhn_l2_AWP_AT --project at --gpu 1 &&
-
-    python3 -u main.py --model WideResNet28 --config svhn_l2_AT --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config svhn_l2_TRADES --project at --gpu 1 &&
-    python3 -u main.py --model WideResNet28 --config svhn_l2_AWP_AT --project at --gpu 1 &&
-
+run_WRN() {
+    python3 -u main.py --model WideResNet28 --config $1 --project at --gpu $2 &&
     echo "Done"
 }
 
-function run_test() {
-    # cifar10
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_linf_AWP_AT --project at --gpu 2 &&
+run_Pre_linf() {
+    run_PreAct cifar10_linf_AT $1 &&
+    run_PreAct cifar10_linf_TRADES $1 &&
+    run_PreAct cifar10_linf_AWP_AT $1 &&
 
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_linf_AWP_AT --project at --gpu 2 &&
+    run_PreAct cifar100_linf_AT $1 &&
+    run_PreAct cifar100_linf_TRADES $1 &&
+    run_PreAct cifar100_linf_AWP_AT $1 &&
 
-    # # cifar100
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_linf_AWP_AT --project at --gpu 2 &&
+    run_PreAct svhn_linf_AT $1 &&
+    run_PreAct svhn_linf_TRADES $1 &&
+    run_PreAct svhn_linf_AWP_AT $1 &&
+    echo "Done"
+}
+run_Pre_l2() {
+    run_PreAct cifar10_l2_AT $1 &&
+    run_PreAct cifar10_l2_TRADES $1 &&
+    run_PreAct cifar10_l2_AWP_AT $1 &&
 
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_linf_AWP_AT --project at --gpu 2 &&
+    run_PreAct cifar100_l2_AT $1 &&
+    run_PreAct cifar100_l2_TRADES $1 &&
+    run_PreAct cifar100_l2_AWP_AT $1 &&
 
-    # # SVHN
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_linf_AWP_AT --project at --gpu 2 &&
+    run_PreAct svhn_l2_AT $1 &&
+    run_PreAct svhn_l2_TRADES $1 &&
+    run_PreAct svhn_l2_AWP_AT $1 &&
+    echo "Done"
+}
+run_WRN_linf() {
+    run_WRN cifar10_linf_AT $1 &&
+    run_WRN cifar10_linf_TRADES $1 &&
+    run_WRN cifar10_linf_AWP_AT $1 &&
 
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_linf_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_linf_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_linf_AWP_AT --project at --gpu 2 &&
+    run_WRN cifar100_linf_AT $1 &&
+    run_WRN cifar100_linf_TRADES $1 &&
+    run_WRN cifar100_linf_AWP_AT $1 &&
 
-    # # cifar10
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_l2_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_l2_TRADES --project at --gpu 2 &&
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar10_l2_AWP_AT --project at --gpu 2 &&
+    run_WRN svhn_linf_AT $1 &&
+    run_WRN svhn_linf_TRADES $1 &&
+    run_WRN svhn_linf_AWP_AT $1 &&
+    echo "Done"
+}
+run_WRN_l2() {
+    run_WRN cifar10_l2_AT $1 &&
+    run_WRN cifar10_l2_TRADES $1 &&
+    run_WRN cifar10_l2_AWP_AT $1 &&
 
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_l2_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_l2_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar10_l2_AWP_AT --project at --gpu 2 &&
+    run_WRN cifar100_l2_AT $1 &&
+    run_WRN cifar100_l2_TRADES $1 &&
+    run_WRN cifar100_l2_AWP_AT $1 &&
 
-    # cifar100
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_l2_AT --project at --gpu 2 &&
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_l2_TRADES --project at --gpu 2 &&
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config cifar100_l2_AWP_AT --project at --gpu 2 &&
-
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_l2_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_l2_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config cifar100_l2_AWP_AT --project at --gpu 2 &&
-
-    # SVHN
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_l2_AT --project at --gpu 2 &&
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_l2_TRADES --project at --gpu 2 &&
-    python3 -u main.py --fname test --max-epoch 1 --model PreActResNet18 --config svhn_l2_AWP_AT --project at --gpu 2 &&
-
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_l2_AT --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_l2_TRADES --project at --gpu 2 &&
-    # python3 -u main.py --fname test --max-epoch 1 --model WideResNet28 --config svhn_l2_AWP_AT --project at --gpu 2 &&
-
+    run_WRN svhn_l2_AT $1 &&
+    run_WRN svhn_l2_TRADES $1 &&
+    run_WRN svhn_l2_AWP_AT $1 &&
     echo "Done"
 }
 
-if [ "$1"x == "l2"x ]
+
+if [ "$1"x == "61"x ]
 then
-    echo "L_2"
-    run_l2
-elif [ "$1"x == "linf"x ]
-then
-    echo "L_inf"
-    run_linf
+    run_WRN_linf 0 &
+    run_WRN_l2 2 &
 else
-    echo "Test"
-    run_test
+    run_Pre_linf 0 &
+    run_Pre_l2 2 &
 fi
