@@ -45,14 +45,6 @@ class Trainer:
         self.test_attack = PGD_Test(args, model, iters=20)
 
     def save_model(self, epoch, adv_acc=None, nat_acc=None, only_best_and_last=True):
-        if adv_acc is not None and adv_acc > self.best_acc:
-            self.best_acc = adv_acc
-            self.best_epoch = epoch
-            if not self.args.tensorboard:
-                wandb.run.summary["best_adv_acc"] = adv_acc
-                if nat_acc is not None:
-                    wandb.run.summary["best_nat_acc"] = nat_acc
-
         if only_best_and_last:
             if adv_acc is not None and adv_acc > self.best_acc:
                 torch.save(
@@ -96,6 +88,14 @@ class Trainer:
                         os.symlink(target, link_name)
                     else:
                         raise e
+
+        if adv_acc is not None and adv_acc > self.best_acc:
+            self.best_acc = adv_acc
+            self.best_epoch = epoch
+            if not self.args.tensorboard:
+                wandb.run.summary["best_adv_acc"] = adv_acc
+                if nat_acc is not None:
+                    wandb.run.summary["best_nat_acc"] = nat_acc
 
     def train_one_epoch(self, epoch):
         self.logger.info("Train_Epoch \tNat_Loss \tNat_Acc \tAdv_Loss \tAdv_Acc")
