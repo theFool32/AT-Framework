@@ -10,7 +10,7 @@ from losses import get_loss_fn
 
 
 class TRADES(AT):
-    def __init__(self, _model, _attack, **kw):
-        super(TRADES, self).__init__(_model, _attack, **kw)
+    def __init__(self, _model, _attack, _args):
+        super(TRADES, self).__init__(_model, _attack, _args)
         self.inner_loss_fn = get_loss_fn("trades_inner")
         self.outer_loss_fn = get_loss_fn("trades_outer")
