@@ -42,7 +42,7 @@ class Trainer:
         self.best_acc = -1
         self.best_epoch = -1
 
-        self.test_attack = PGD_Test(args, model, iters=20)
+        self.test_attack = PGD_Test(args, model, iters=10)
 
     def save_model(self, epoch, adv_acc=None, nat_acc=None, only_best_and_last=True):
         if only_best_and_last:
