@@ -5,7 +5,8 @@ base_config = {
     "max_epoch": 110,
     "batch_size": 128,
     "lr_adjust": "100,105",
-    "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 100,
+    # "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 100,
+    "save_checkpoints": lambda epoch: True,
 }
 
 linf_base_config = {
@@ -84,8 +85,12 @@ linf_AWP_config = {
     "defense": "awp_at",
     "max_epoch": 200,
     "lr_adjust": "100,150",
-    # "save_checkpoints": lambda epoch: epoch == 1 or epoch % 10 == 0 or epoch >= 150,
-    "save_checkpoints": lambda epoch: True,
+}
+l2_AWP_config = {
+    **l2_AT_config,
+    "defense": "awp_at",
+    "max_epoch": 200,
+    "lr_adjust": "100,150",
 }
 
 linf_SWA_config = {

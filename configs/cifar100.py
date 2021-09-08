@@ -37,3 +37,19 @@ cifar100_l2_MART_config = {
     "dataset": "cifar100",
     "fname": "cifar100_l2_MART",
 }
+
+# ====================================
+# AWP
+cifar100_linf_AWP_AT_config = {
+    **base.linf_AT_config,
+    **base.linf_AWP_config,
+    "dataset": "cifar100",
+    "fname": "cifar100_linf_AWP_AT",
+}
+
+cifar100_l2_AWP_AT_config = {
+    **base.l2_AT_config,
+    **base.l2_AWP_config,
+    "dataset": "cifar100",
+    "fname": "cifar100_l2_AWP_AT",
+}

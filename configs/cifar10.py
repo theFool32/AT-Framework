@@ -61,6 +61,27 @@ cifar10_linf_AWP_MART_config = {
     "fname": "cifar10_linf_AWP_MART",
 }
 
+cifar10_l2_AWP_AT_config = {
+    **base.l2_AT_config,
+    **base.l2_AWP_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_AWP_AT",
+}
+
+cifar10_l2_AWP_TRADES_config = {
+    **base.l2_TRADES_config,
+    **base.l2_AWP_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_AWP_TRADES",
+}
+
+cifar10_l2_AWP_MART_config = {
+    **base.l2_MART_config,
+    **base.l2_AWP_config,
+    "dataset": "cifar10",
+    "fname": "cifar10_l2_AWP_MART",
+}
+
 # ====================================
 # SWA
 cifar10_linf_SWA_AT_config = {
