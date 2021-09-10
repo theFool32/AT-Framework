@@ -90,3 +90,11 @@ cifar10_linf_SWA_AT_config = {
     "dataset": "cifar10",
     "fname": "cifar10_linf_SWA_AT",
 }
+
+# ====================================
+# TE
+cifar10_linf_TE_config = {
+    **cifar10_linf_AT_config,
+    "defense": "te",
+    "fname": "cifar10_linf_TE",
+}

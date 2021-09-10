@@ -10,6 +10,7 @@ from torch import Tensor
 import numpy as np
 
 from .base import Dataset
+from .utils import RandomSampler
 
 
 class Cifar10(Dataset):
@@ -30,6 +31,7 @@ class Cifar10(Dataset):
             ]
         )
 
+
         self._train_dataset = datasets.CIFAR10(
             root=root, train=True, download=True, transform=train_transform
         )
@@ -37,12 +39,14 @@ class Cifar10(Dataset):
             root=root, train=False, download=True, transform=test_transform
         )
 
+        self.random_sampler = RandomSampler(self._train_dataset, generator=None)
         self._train_loader = data.DataLoader(
             self._train_dataset,
             batch_size=batch_size,
             num_workers=4,
             pin_memory=True,
-            shuffle=True,
+            # shuffle=True,
+            sampler=self.random_sampler,
         )
         self._test_loader = data.DataLoader(
             self._test_dataset,
