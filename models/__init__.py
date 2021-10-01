@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 from torch.cuda.amp.autocast_mode import autocast
+from torch import nn
 
 from .resnet import *
 from .preactresnet import *
 from .wideresnet import *
-
-from torch import nn
+from utils import Configurator
 
 
 class ModelWrap(nn.Module):
@@ -30,16 +30,15 @@ class ModelWrap(nn.Module):
                 return self.basic_net((inputs - self.mean) / self.std)
 
 
-def get_network(args):
-    model_name = args.model
+def get_network(model_name):
+    config = Configurator()
     if model_name == "PreActResNet18":
-        model = PreActResNet18(num_classes=args.dataset.num_classes)
+        model = PreActResNet18(num_classes=config.dataset.num_classes)
     elif model_name == "WideResNet28":
-        model = WideResNet28(num_classes=args.dataset.num_classes)
+        model = WideResNet28(num_classes=config.dataset.num_classes)
     elif model_name == "WideResNet34":
-        model = WideResNet34(num_classes=args.dataset.num_classes)
+        model = WideResNet34(num_classes=config.dataset.num_classes)
     else:
         raise NotImplementedError(f"Model not implemented: {model_name}")
 
-    return ModelWrap(model.cuda(), args.mean, args.std).cuda()
-    # return ModelWrap(globals()[args.model](), args.mean, args.std).cuda()
+    return ModelWrap(model.cuda(), config.mean, config.std).cuda()

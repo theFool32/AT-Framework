@@ -2,21 +2,24 @@
 
 import torch
 from torch.nn import functional as F
+
 from .base import Defense
 
-import sys
-
-sys.path.insert(0, "..")
 from losses import get_loss_fn
-
+from utils import Configurator
 
 class AT(Defense):
-    def __init__(self, _model, _attack, _args):
-        super(AT, self).__init__(_model, _attack, _args)
-        self.inner_loss_fn = get_loss_fn(_args.inner_loss)
-        self.outer_loss_fn = get_loss_fn(_args.outer_loss)
+    configuration = {
+        "inner_loss": "CE",
+        "outer_loss": "CE",
+    }
+
+    def __init__(self, _model, _attack):
+        super(AT, self).__init__(_model, _attack)
+        self.inner_loss_fn = get_loss_fn(Configurator().inner_loss)
+        self.outer_loss_fn = get_loss_fn(Configurator().outer_loss)
         self.init_mode = "pgd"
-        if _args.defense == "trades":
+        if Configurator().defense == "trades":
             self.init_mode = "trades"
 
     def train(self, data, label):

@@ -24,7 +24,7 @@ def trades_inner(adv_logit, label, nat_logit=None, reduction="sum"):
 
 
 def trades_outer(adv_logit, label, nat_logit=None, reduction="mean"):
-    beta = 6  # TODO: adjustable
+    beta = Configurator.beta
     nat_loss = F.cross_entropy(nat_logit, label)
     robust_loss = F.kl_div(
         F.log_softmax(adv_logit, dim=1),

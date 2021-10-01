@@ -13,73 +13,10 @@ from models import get_network
 from datasets import get_dataset
 from attacks import get_attack
 from utils import git_version
-from utils import Parameters
+from utils import Configurator
 from utils import Lr_schedule
+from utils import get_args
 from defenses import get_defense
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="cifar10_linf_AT", type=str)
-    parser.add_argument("--model", default="PreActResNet18")
-    parser.add_argument("--batch-size", type=int)
-    parser.add_argument("--dataset", type=str)
-    parser.add_argument("--data-dir", default="~/datasets/", type=str)
-    parser.add_argument("--max-epoch", type=int)
-    parser.add_argument("--epoch", default=1, type=int)
-    parser.add_argument("--defense", type=str)
-    parser.add_argument("--attack", type=str)
-    parser.add_argument("--inner-loss", type=str)
-    parser.add_argument("--outer-loss", type=str)
-    parser.add_argument("--log-step", type=int)
-    parser.add_argument("--lr", type=float)
-    parser.add_argument("--lr-adjust", type=str)
-    parser.add_argument("--weight-decay", type=float)
-    parser.add_argument("--epsilon", type=int)
-    parser.add_argument("--attack-iters", type=int)
-    parser.add_argument("--pgd-alpha", type=float)
-    parser.add_argument("--norm", type=str, choices=["l_inf", "l_2"])
-    parser.add_argument("--fname", type=str)
-    parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--resume-checkpoint", default="", type=str)
-    parser.add_argument("--tensorboard", action="store_true")
-    parser.add_argument("--project", default="AT-Framework", type=str)
-    parser.add_argument("--no-amp", action="store_true")
-    parser.add_argument("--gpu", default="0", type=str)
-    args = parser.parse_args()
-
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-    torch.backends.cudnn.benchmark = True
-
-    # torch.backends.cudnn.enabled = True   # 默认值
-    # torch.backends.cudnn.benchmark = False  # 默认为False
-    # torch.backends.cudnn.deterministic = True
-
-    import configs
-
-    try:
-        config = getattr(configs, args.config + "_config")
-        args = vars(args)
-        args = {**config, **{k: args[k] for k in args if args[k] is not None}}
-        args = Parameters(args)
-    except Exception:
-        raise NotImplementedError(f"No such configuration: {args.config}")
-
-    args.data_dir = f"{args.data_dir}/{args.dataset}"
-
-    args.fname = args.fname + "_" + args.model
-    args.checkpoints = args.fname + "_checkpoints"
-
-    current_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
-    args.fname = args.fname + "/" + current_time
-    args.checkpoints = args.checkpoints + "/" + current_time
-
-    output_dir = "Outputs/"
-    args.fname = output_dir + args.fname
-    args.checkpoints = output_dir + args.checkpoints
-
-    return args
-
 
 def main():
     args = get_args()
@@ -123,12 +60,12 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    dataset = get_dataset(args)
+    dataset = get_dataset(args.dataset)
 
     args.mean = dataset.mean
     args.std = dataset.std
     args.dataset = dataset
-    model = get_network(args)
+    model = get_network(args.model)
 
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
@@ -142,6 +79,8 @@ def main():
         model.load_state_dict(state["state_dict"])
         opt.load_state_dict(state["optimizer"])
         args.epoch = state["epoch"] + 1
+    else:
+        args.epoch = 1
 
     if not args.no_amp:
         # from torch.cuda.amp.grad_scaler import GradScaler
@@ -157,11 +96,10 @@ def main():
 
     args.opt = opt
 
-    attack = get_attack(args, model=model)
-    defense = get_defense(args, model, attack)
+    attack = get_attack(model=model)
+    defense = get_defense(model, attack)
 
     trainer = Trainer(
-        args=args,
         model=model,
         dataset=dataset,
         logger=logger,

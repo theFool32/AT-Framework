@@ -13,13 +13,13 @@ import wandb
 
 from datasets.base import Dataset
 from utils import AverageMeter
+from utils import Configurator
 from attacks import PGD_Test
 
 
 class Trainer:
     def __init__(
         self,
-        args,
         model,
         dataset: Dataset,
         logger: logging.Logger,
@@ -30,7 +30,7 @@ class Trainer:
         writer=None,
     ):
         self.defense = defense
-        self.args = args
+        self.config = Configurator()
         self.model = model
         self.dataset = dataset
         self.logger = logger
@@ -42,7 +42,7 @@ class Trainer:
         self.best_acc = -1
         self.best_epoch = -1
 
-        self.test_attack = PGD_Test(args, model, iters=10)
+        self.test_attack = PGD_Test(model, iters=10)
 
     def save_model(self, epoch, adv_acc=None, nat_acc=None, only_best_and_last=True):
         if only_best_and_last:
@@ -53,16 +53,16 @@ class Trainer:
                         "optimizer": self.opt.state_dict(),
                         "epoch": epoch,
                     },
-                    os.path.join(self.args.checkpoints, f"model_best.pth"),
+                    os.path.join(self.config.checkpoints, f"model_best.pth"),
                 )
-            if epoch == self.args.max_epoch:
+            if epoch == self.config.max_epoch:
                 torch.save(
                     {
                         "state_dict": self.model.state_dict(),
                         "optimizer": self.opt.state_dict(),
                         "epoch": epoch,
                     },
-                    os.path.join(self.args.checkpoints, f"model_last.pth"),
+                    os.path.join(self.config.checkpoints, f"model_last.pth"),
                 )
         else:
             torch.save(
@@ -71,14 +71,14 @@ class Trainer:
                     "optimizer": self.opt.state_dict(),
                     "epoch": epoch,
                 },
-                os.path.join(self.args.checkpoints, f"model_{epoch}.pth"),
+                os.path.join(self.config.checkpoints, f"model_{epoch}.pth"),
             )
             if adv_acc is not None and adv_acc > self.best_acc:
                 target = os.path.abspath(
-                    os.path.join(self.args.checkpoints, f"model_{epoch}.pth")
+                    os.path.join(self.config.checkpoints, f"model_{epoch}.pth")
                 )
                 link_name = os.path.abspath(
-                    os.path.join(self.args.checkpoints, "model_best.pth")
+                    os.path.join(self.config.checkpoints, "model_best.pth")
                 )
                 try:
                     os.symlink(target, link_name)
@@ -92,7 +92,7 @@ class Trainer:
         if adv_acc is not None and adv_acc > self.best_acc:
             self.best_acc = adv_acc
             self.best_epoch = epoch
-            if not self.args.tensorboard:
+            if not self.config.tensorboard:
                 wandb.run.summary["best_adv_acc"] = adv_acc
                 if nat_acc is not None:
                     wandb.run.summary["best_nat_acc"] = nat_acc
@@ -122,12 +122,12 @@ class Trainer:
 
             if isinstance(total_loss, torch.Tensor):
                 self.opt.zero_grad()
-                if not self.args.no_amp:
-                    # self.args.scaler.scale(total_loss).backward()
-                    # self.args.scaler.step(self.opt)
-                    # self.args.scaler.update()
-                    with self.args.amp.scale_loss(
-                        total_loss, self.args.opt
+                if not self.config.no_amp:
+                    # self.config.scaler.scale(total_loss).backward()
+                    # self.config.scaler.step(self.opt)
+                    # self.config.scaler.update()
+                    with self.config.amp.scale_loss(
+                        total_loss, self.config.opt
                     ) as scaled_loss:
                         scaled_loss.backward()
                     self.opt.step()
@@ -140,7 +140,7 @@ class Trainer:
             adv_loss_meter.update(adv_loss)
             adv_acc_meter.update(adv_acc / data.size(0), data.size(0))
 
-            if batch_idx % self.args.log_step == 0:
+            if batch_idx % self.config.log_step == 0:
                 msg = (
                     f"{batch_idx}/{epoch} \t{loss:.3f}/{nat_loss_meter.avg:.3f} \t{nat_acc/data.size(0)*100:.2f}/{nat_acc_meter.avg*100:.2f} "
                     f"\t{adv_loss:.3f}/{adv_loss_meter.avg:.3f} \t{adv_acc/data.size(0)*100:.2f}/{adv_acc_meter.avg*100:.2f}"
@@ -148,7 +148,7 @@ class Trainer:
                 self.logger.info(msg)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
-        if self.args.tensorboard:
+        if self.config.tensorboard:
             self.writer.add_scalar(
                 "train/nat_loss", nat_loss_meter.avg, global_step=epoch
             )
@@ -174,15 +174,16 @@ class Trainer:
 
     def train(self):
         self.model.train()
-        for epoch in range(self.args.epoch, self.args.max_epoch + 1):
-            self.model.test_mode(False, self.args.no_amp)
-            self.args.epoch = epoch
+        for epoch in range(self.config.epoch, self.config.max_epoch + 1):
+            self.model.test_mode(False, self.config.no_amp)
+            self.config.epoch = epoch
             self.train_one_epoch(epoch)
             self.defense.postprocess(epoch)
             if self.scheduler is not None:
                 self.scheduler.step(epoch)
-            if self.args.save_checkpoints is not None and self.args.save_checkpoints(
-                epoch
+            if (
+                self.config.save_checkpoints is not None
+                and self.config.save_checkpoints(epoch)
             ):
                 self.model.test_mode(True)
                 self.test(epoch)
@@ -216,10 +217,10 @@ class Trainer:
         self.save_model(epoch, adv_acc_meter.avg, nat_acc_meter.avg, True)
         msg = f"{epoch} \t{nat_loss_meter.avg:.3f} \t{nat_acc_meter.avg*100:.2f} \t{adv_loss_meter.avg:.3f} \t{adv_acc_meter.avg*100:.2f}"
         self.logger.info(msg)
-        self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc}")
+        self.logger.info(f"Best: {self.best_epoch} \t{self.best_acc*100:.2f}")
         self.logger.info("=" * 70)
 
-        if self.args.tensorboard:
+        if self.config.tensorboard:
             self.writer.add_scalar(
                 "test/nat_loss", nat_loss_meter.avg, global_step=epoch
             )

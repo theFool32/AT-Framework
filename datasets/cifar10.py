@@ -10,12 +10,25 @@ from torch import Tensor
 import numpy as np
 
 from .base import Dataset
-from .utils import RandomSampler
+from .random_sampler import RandomSampler
 
+__all__ = ["Cifar10"]
 
 class Cifar10(Dataset):
     num_classes = 10
     dataset_name = "cifar10"
+    configuration = {
+        "l2": {
+            "lr": 1e-1,
+            "epsilon": 128,
+            "pgd_alpha": 15,
+        },
+        "linf": {
+            "lr": 1e-1,
+            "epsilon": 8,
+            "pgd_alpha": 2,
+        }
+    }
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(

@@ -10,9 +10,8 @@ from torch.nn import functional as F
 from apex import amp
 
 from .base import Defense
-
-sys.path.insert(0, "..")
 from losses import get_loss_fn
+from utils import Configurator
 
 __all__ = ["AWP"]
 
@@ -86,14 +85,14 @@ class AdvWeightPerturb(object):
 
 
 class AWP(Defense):
-    def __init__(self, _model, _attack, _args, inner_defense):
-        super(AWP, self).__init__(_model, _attack, _args)
+    def __init__(self, _model, _attack, inner_defense):
+        super(AWP, self).__init__(_model, _attack)
         try:
             loss_fn = inner_defense.inner_loss_fn
         except Exception:
             loss_fn = get_loss_fn("CE")
 
-        self.awp = AdvWeightPerturb(_model, loss_fn, no_amp=self.args.no_amp)
+        self.awp = AdvWeightPerturb(_model, loss_fn, no_amp=Configurator().no_amp)
         self.defense = inner_defense
 
     def train(self, data, label):
@@ -120,17 +119,17 @@ class AWP(Defense):
         adv_loss = self.defense.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss
-        self.args.opt.zero_grad()
-        if not self.args.no_amp:
-            # self.args.scaler.scale(total_loss).backward()
-            # self.args.scaler.step(self.args.opt)
-            # self.args.scaler.update()
-            with self.args.amp.scale_loss(total_loss, self.args.opt) as scaled_loss:
+        Configurator().opt.zero_grad()
+        if not Configurator().no_amp:
+            # Configurator().scaler.scale(total_loss).backward()
+            # Configurator().scaler.step(Configurator().opt)
+            # Configurator().scaler.update()
+            with Configurator().amp.scale_loss(total_loss, Configurator().opt) as scaled_loss:
                 scaled_loss.backward()
-            self.args.opt.step()
+            Configurator().opt.step()
         else:
             total_loss.backward()
-            self.args.opt.step()
+            Configurator().opt.step()
 
         self.awp.restore(diff)
 

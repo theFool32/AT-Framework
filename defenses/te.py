@@ -5,11 +5,8 @@ from torch.nn import functional as F
 import numpy as np
 
 from .base import Defense
-
-import sys
-
-sys.path.insert(0, "..")
 from losses import get_loss_fn
+from utils import Configurator
 
 
 def ramp_up(epoch, max_epochs, max_val, mult):
@@ -25,23 +22,28 @@ def weight_schedule(epoch, max_epochs, max_val, mult):
 
 
 class TE(Defense):
-    def __init__(self, _model, _attack, _args):
-        super(TE, self).__init__(_model, _attack, _args)
-        self.inner_loss_fn = get_loss_fn(_args.inner_loss)
-        self.outer_loss_fn = get_loss_fn(_args.outer_loss)
+    configuration = {
+        "inner_loss": "CE",
+        "outer_loss": "CE",
+    }
+
+    def __init__(self, _model, _attack):
+        super(TE, self).__init__(_model, _attack)
+        self.inner_loss_fn = get_loss_fn(Configurator().inner_loss)
+        self.outer_loss_fn = get_loss_fn(Configurator().outer_loss)
         self.init_mode = "pgd"
-        if _args.defense == "trades":
+        if Configurator().defense == "trades":
             self.init_mode = "trades"
-        n_data = len(_args.dataset.train_loader.dataset)
+        n_data = len(Configurator().dataset.train_loader.dataset)
 
         self.Z = torch.zeros(n_data, 10).cuda()  # intermediate values
         self.z = torch.zeros(n_data, 10).cuda()  # temporal outputs
         self.outputs = torch.zeros(n_data, 10).cuda()  # current outputs
         self.iter = 0
-        self.batch_size = _args.batch_size
+        self.batch_size = Configurator().batch_size
         self.w = 0
 
-        self.sampler = _args.dataset.random_sampler
+        self.sampler = Configurator().dataset.random_sampler
 
     def te_loss(self, z):
         def mse_loss(output):
@@ -52,9 +54,7 @@ class TE(Defense):
             if reduction is None:
                 loss_1 = loss_fn(adv_output, label, output)
             else:
-                loss_1 = loss_fn(
-                    adv_output, label, output, reduction=reduction
-                )
+                loss_1 = loss_fn(adv_output, label, output, reduction=reduction)
             return loss_1 + self.w * mse_loss(adv_output)
 
         def _inner_loss_fn(adv_output, label, output, reduction=None):
@@ -69,7 +69,9 @@ class TE(Defense):
         output = self.model(data)
         loss = F.cross_entropy(output, label)
 
-        indices = self.sampler.indices[self.iter * self.batch_size : (self.iter + 1) * self.batch_size]
+        indices = self.sampler.indices[
+            self.iter * self.batch_size : (self.iter + 1) * self.batch_size
+        ]
         zcomp = self.z[indices]
         inner_loss_fn, outer_loss_fn = self.te_loss(zcomp)
 

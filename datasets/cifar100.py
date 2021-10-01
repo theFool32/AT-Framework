@@ -11,6 +11,18 @@ from .base import Dataset
 class Cifar100(Dataset):
     num_classes = 100
     dataset_name = "cifar100"
+    configuration = {
+        "l2": {
+            "lr": 1e-1,
+            "epsilon": 128,
+            "pgd_alpha": 15,
+        },
+        "linf": {
+            "lr": 1e-1,
+            "epsilon": 8,
+            "pgd_alpha": 2,
+        }
+    }
 
     def __init__(self, root, batch_size=128):
         train_transform = transforms.Compose(
