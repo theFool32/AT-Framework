@@ -5,8 +5,8 @@ from .base import Attack
 import torch
 import sys
 
-sys.path.insert(0, "..")
 from losses import get_loss_fn
+from utils import Configurator
 
 
 def clamp(X, lower_limit, upper_limit):
@@ -25,7 +25,6 @@ def attack_pgd(
     early_stop=False,
     loss_fn=None,
     init_mode="pgd",
-    args=None,
 ):
     max_loss = torch.zeros_like(y)
     max_delta = torch.zeros_like(X)
@@ -44,9 +43,9 @@ def attack_pgd(
     for _ in range(restarts):
         delta = torch.zeros_like(X)
         if init_mode == "pgd":
-            if norm == "l_inf":
+            if norm == "linf":
                 delta.uniform_(-epsilon, epsilon)
-            elif norm == "l_2":
+            elif norm == "l2":
                 delta.normal_()
                 d_flat = delta.view(delta.size(0), -1)
                 n = d_flat.norm(p=2, dim=1).view(delta.size(0), 1, 1, 1)
@@ -68,9 +67,9 @@ def attack_pgd(
             if not isinstance(index, slice) and len(index) == 0:
                 break
             loss = loss_fn(output, y, nat_output)
-            if not args.no_amp:
-                # args.scaler.scale(loss).backward()
-                with args.amp.scale_loss(loss, args.opt) as scaled_loss:
+            if not Configurator().no_amp:
+                # Configurator().scaler.scale(loss).backward()
+                with Configurator().amp.scale_loss(loss, Configurator().opt) as scaled_loss:
                     scaled_loss.backward()
             else:
                 loss.backward()
@@ -78,9 +77,9 @@ def attack_pgd(
             d = delta[index, :, :, :]
             g = grad[index, :, :, :]
             x = X[index, :, :, :]
-            if norm == "l_inf":
+            if norm == "linf":
                 d = torch.clamp(d + alpha * torch.sign(g), min=-epsilon, max=epsilon)
-            elif norm == "l_2":
+            elif norm == "l2":
                 g_norm = torch.norm(g.view(g.shape[0], -1), dim=1).view(-1, 1, 1, 1)
                 scaled_g = g / (g_norm + 1e-10)
                 d = (
@@ -99,13 +98,13 @@ def attack_pgd(
 
 
 class PGD(Attack):
-    def __init__(self, args, model, epsilon=None, norm=None, alpha=None, iters=None):
-        self.epsilon = args.epsilon / 255 if epsilon is None else epsilon
-        self.norm = args.norm if norm is None else norm
-        self.alpha = args.pgd_alpha / 255 if alpha is None else alpha
-        self.iters = args.attack_iters if iters is None else iters
+    def __init__(self, model, epsilon=None, norm=None, alpha=None, iters=None):
+        configurator = Configurator()
+        self.epsilon = configurator.epsilon / 255 if epsilon is None else epsilon
+        self.norm = configurator.norm if norm is None else norm
+        self.alpha = configurator.pgd_alpha / 255 if alpha is None else alpha
+        self.iters = configurator.attack_iters if iters is None else iters
         self.model = model
-        self.args = args
 
     def perturb(
         self, inputs, labels=None, loss_fn=None, early_stop=False, init_mode="pgd"
@@ -122,7 +121,6 @@ class PGD(Attack):
             early_stop=early_stop,
             loss_fn=loss_fn,
             init_mode=init_mode,
-            args=self.args,
         )
 
 
@@ -131,13 +129,13 @@ class PGD_Test(Attack):
     Used during training for test
     """
 
-    def __init__(self, args, model, epsilon=None, norm=None, alpha=None, iters=None):
-        self.epsilon = args.epsilon / 255 if epsilon is None else epsilon
-        self.norm = args.norm if norm is None else norm
-        self.alpha = args.pgd_alpha / 255 if alpha is None else alpha
-        self.iters = args.attack_iters if iters is None else iters
+    def __init__(self, model, epsilon=None, norm=None, alpha=None, iters=None):
+        configurator = Configurator()
+        self.epsilon = configurator.epsilon / 255 if epsilon is None else epsilon
+        self.norm = configurator.norm if norm is None else norm
+        self.alpha = configurator.pgd_alpha / 255 if alpha is None else alpha
+        self.iters = configurator.attack_iters if iters is None else iters
         self.model = model
-        self.args = args
 
     def perturb(
         self, inputs, labels=None, loss_fn=None, early_stop=False, init_mode="pgd"
@@ -152,5 +150,4 @@ class PGD_Test(Attack):
             1,
             self.norm,
             early_stop=early_stop,
-            args=self.args,
         )

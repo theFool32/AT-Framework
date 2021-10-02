@@ -4,6 +4,7 @@
 import copy
 import torch
 from .base import Defense
+from utils import Configurator
 
 __all__ = ["SWA"]
 
@@ -72,13 +73,13 @@ def bn_update(loader, model):
 
 class SWA(Defense):
     # Under construction.
-    def __init__(self, _model, _attack, _args, inner_defense):
-        super(SWA, self).__init__(_model, _attack, _args)
+    def __init__(self, _model, _attack, inner_defense):
+        super(SWA, self).__init__(_model, _attack)
         self.defense = inner_defense
         self.proxy_model = copy.deepcopy(_model)
         self.swa_n = 0
         try:
-            self.start_epoch = int(_args.lr_adjust.split(",")[0])
+            self.start_epoch = int(Configurator().lr_adjust.split(",")[0])
         except Exception:
             self.start_epoch = 0
 
@@ -97,6 +98,6 @@ class SWA(Defense):
             if True:
                 moving_average(self.proxy_model, self.model, 1.0 / (self.swa_n + 1))
                 self.swa_n += 1
-                bn_update(self.args.dataset.train_loader, self.proxy_model)
+                bn_update(Configurator().dataset.train_loader, self.proxy_model)
 
                 self.model.load_state_dict(self.proxy_model.state_dict())
