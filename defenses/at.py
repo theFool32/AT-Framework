@@ -19,8 +19,6 @@ class AT(Defense):
         self.inner_loss_fn = get_loss_fn(Configurator().inner_loss)
         self.outer_loss_fn = get_loss_fn(Configurator().outer_loss)
         self.init_mode = "pgd"
-        if Configurator().defense == "trades":
-            self.init_mode = "trades"
 
     def train(self, data, label):
         output = self.model(data)

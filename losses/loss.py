@@ -4,6 +4,8 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 
+from utils import Configurator
+
 __all__ = ["cross_entropy", "trades_inner", "trades_outer", "mart_outer"]
 
 
@@ -24,7 +26,7 @@ def trades_inner(adv_logit, label, nat_logit=None, reduction="sum"):
 
 
 def trades_outer(adv_logit, label, nat_logit=None, reduction="mean"):
-    beta = Configurator.beta
+    beta = Configurator().beta
     nat_loss = F.cross_entropy(nat_logit, label)
     robust_loss = F.kl_div(
         F.log_softmax(adv_logit, dim=1),
@@ -36,7 +38,7 @@ def trades_outer(adv_logit, label, nat_logit=None, reduction="mean"):
 
 
 def mart_outer(adv_logit, label, nat_logit=None, reduction="mean"):
-    beta = 6
+    beta = Configurator().beta
     adv_probs = F.softmax(adv_logit, dim=1)
     tmp1 = torch.argsort(adv_probs, dim=1)[:, -2:]
     new_y = torch.where(tmp1[:, -1] == label, tmp1[:, -2], tmp1[:, -1])
