@@ -56,7 +56,7 @@ def get_args():
     main_parser.add_argument("--resume-checkpoint", default="", type=str)
     main_parser.add_argument("--lr", type=float)
     main_parser.add_argument("--lr-adjust", type=str)
-    main_args, subc_args = main_parser.parse_known_args()
+    main_args, sub_args = main_parser.parse_known_args()
 
     config = vars(main_args)
 
@@ -77,7 +77,7 @@ def get_args():
     sub_parser = main_parser.add_subparsers().add_parser("sub")
     for k, v in config.items():
         sub_parser.add_argument(f"--{k.replace('_', '-')}", type=type(v))
-    sub_args, _ = sub_parser.parse_known_args()
+    sub_args, _ = sub_parser.parse_known_args(sub_args)
     config.update({k: v for k, v in vars(sub_args).items() if v is not None})
 
     config["config"] = config_name
