@@ -21,6 +21,9 @@ from defenses import get_defense
 def main():
     args = get_args()
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    torch.backends.cudnn.benchmark = True
+
     if not os.path.exists(args.fname):
         os.makedirs(args.fname)
     if not os.path.exists(args.checkpoints):
