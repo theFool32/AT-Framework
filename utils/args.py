@@ -58,7 +58,7 @@ def get_args():
     main_parser.add_argument("--lr-adjust", type=str)
     main_args, sub_args = main_parser.parse_known_args()
 
-    config = vars(main_args)
+    config = {}
 
     # Get default arguments
     config_name = main_args.config
@@ -73,6 +73,8 @@ def get_args():
     config["norm"] = norm
     config["defense"] = defense
 
+    # Update with user input
+    config.update(vars(main_args))
     # Parse custom arguments
     sub_parser = main_parser.add_subparsers().add_parser("sub")
     for k, v in config.items():
