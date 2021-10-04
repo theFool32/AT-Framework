@@ -83,7 +83,7 @@ def get_args():
     config.update({k: v for k, v in vars(sub_args).items() if v is not None})
 
     config["config"] = config_name
-    if config["fname"] is None:
+    if "fname" not in config or config["fname"] is None:
         config["fname"] = config_name
 
     args = Configurator().update(config)
