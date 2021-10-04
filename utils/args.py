@@ -74,7 +74,7 @@ def get_args():
     config["defense"] = defense
 
     # Update with user input
-    config.update(vars(main_args))
+    config.update({k: v for k, v in vars(main_args).items() if v is not None})
     # Parse custom arguments
     sub_parser = main_parser.add_subparsers().add_parser("sub")
     for k, v in config.items():
