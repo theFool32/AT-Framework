@@ -14,7 +14,7 @@ from datasets import get_dataset
 from attacks import get_attack
 from utils import git_version
 from utils import Configurator
-from utils import Lr_schedule
+from utils import Piecewise_Lr_schedule, Cosine_Lr_schedule
 from utils import get_args
 from defenses import get_defense
 
@@ -73,9 +73,14 @@ def main():
     opt = torch.optim.SGD(
         model.parameters(), args.lr, momentum=0.9, weight_decay=args.weight_decay
     )
-    scheduler = Lr_schedule(
-        opt, milestones=[int(v) for v in args.lr_adjust.split(",")], gamma=0.1
-    )
+    if args.lr_adjust_method == "piecewise":
+        scheduler = Piecewise_Lr_schedule(
+            opt, milestones=[int(v) for v in args.lr_adjust.split(",")], gamma=0.1
+        )
+    elif args.lr_adjust_method == "cosine":
+        scheduler = Cosine_Lr_schedule(
+            opt, args.lr, args.max_epoch
+        )
 
     if args.resume_checkpoint != "":
         state = torch.load(args.resume_checkpoint)

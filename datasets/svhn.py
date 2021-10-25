@@ -13,11 +13,15 @@ class SVHN(Dataset):
     dataset_name = "svhn"
     configuration = {
         "l2": {
+            "max_epoch": 80,
+            "lr_adjust_method": "cosine",
             "lr": 1e-2,
             "epsilon": 128,
             "pgd_alpha": 15,
         },
         "linf": {
+            "max_epoch": 80,
+            "lr_adjust_method": "cosine",
             "lr": 1e-2,
             "epsilon": 8,
             "pgd_alpha": 2,

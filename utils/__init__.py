@@ -4,8 +4,9 @@ import os
 import subprocess
 
 from .configurator import Configurator
-from .lr_scheduler import Lr_schedule
+from .lr_scheduler import Piecewise_Lr_schedule, Cosine_Lr_schedule
 from .args import get_args
+
 
 class AverageMeter:
     def __init__(self):

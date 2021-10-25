@@ -12,7 +12,11 @@ base_config = {
     "weight_decay": 5e-4,
     "attack_iters": 10,
     "max_epoch": 200,
+    "lr_adjust_method": "piecewise",
     "lr_adjust": "100,150",
+    "model": "PreActResNet18",
+    "config": "cifar10:linf:at",
+    "lr_adjust_method": "piecewise"
 }
 
 
@@ -31,15 +35,15 @@ def get_configuration(config_name: str):
 
 def get_args():
     main_parser = argparse.ArgumentParser()
-    main_parser.add_argument("--config", default="cifar10:linf:at", type=str)
-    main_parser.add_argument("--model", default="PreActResNet18")
+    main_parser.add_argument("--config", type=str, default="cifar10:linf:at")
+    main_parser.add_argument("--model")
     main_parser.add_argument("--batch-size", type=int, default=128)
     main_parser.add_argument("--dataset", type=str)
     main_parser.add_argument("--data-dir", default="~/datasets/", type=str)
-    main_parser.add_argument("--max-epoch", type=int, default=200)
+    main_parser.add_argument("--max-epoch", type=int)
     main_parser.add_argument("--defense", type=str)
     main_parser.add_argument("--log-step", type=int, default=100)
-    main_parser.add_argument("--weight-decay", type=float, default=5e-4)
+    main_parser.add_argument("--weight-decay", type=float)
     main_parser.add_argument("--seed", default=0, type=int)
     main_parser.add_argument("--fname", type=str)
     main_parser.add_argument("--norm", type=str, choices=["linf", "l2"])
@@ -55,6 +59,7 @@ def get_args():
 
     main_parser.add_argument("--resume-checkpoint", default="", type=str)
     main_parser.add_argument("--lr", type=float)
+    main_parser.add_argument("--lr-adjust-method", choices=["piecewise", "cosine"], type=str)
     main_parser.add_argument("--lr-adjust", type=str)
     main_args, sub_args = main_parser.parse_known_args()
 
