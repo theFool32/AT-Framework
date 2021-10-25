@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 
 import torch
 from torch.nn import functional as F
@@ -10,6 +11,7 @@ from models import get_network
 from datasets import get_dataset
 from attacks import PGD
 from utils import AverageMeter
+from utils import Configurator
 
 __all__ = ["eval"]
 
@@ -17,7 +19,7 @@ __all__ = ["eval"]
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="PreActResNet18")
-    parser.add_argument("--batch-size", default=128, type=int)
+    parser.add_argument("--batch-size", default=1024, type=int)
     parser.add_argument("--dataset", default="cifar10", type=str)
     parser.add_argument("--data-dir", default="~/datasets/", type=str)
     parser.add_argument(
@@ -26,12 +28,16 @@ def get_args():
     parser.add_argument("--epsilon", default=8, type=int)
     parser.add_argument("--attack-iters", default=20, type=int)
     parser.add_argument("--pgd-alpha", default=2, type=float)
-    parser.add_argument("--norm", default="l_inf", type=str, choices=["l_inf", "l_2"])
+    parser.add_argument("--norm", default="linf", type=str, choices=["linf", "l2"])
     parser.add_argument("--checkpoint", default="cifar_model_checkpoints", type=str)
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--no-amp", default=True, type=bool)
+    parser.add_argument("--gpu", default="0", type=str)
     args = parser.parse_args()
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     args.data_dir = f"{args.data_dir}/{args.dataset}"
+
+    args = Configurator().update({k: v for k, v in vars(args).items() if v is not None})
     return args
 
 
@@ -66,9 +72,10 @@ def eval(model, args, dataset, logger=None):
             print(s)
 
     model.eval()
+    pgd_alpha = args.pgd_alpha
 
     args.attack_iters = 10
-    attack = PGD(args, model=model)
+    attack = PGD(model=model)
     out("Test pgd10")
     pgd10_acc, nat_acc = pgd(model, dataset.test_loader, attack, need_nature_acc=True)
     out(f"Nature: {nat_acc}")
@@ -76,14 +83,14 @@ def eval(model, args, dataset, logger=None):
 
     args.attack_iters = 20
     out("Test pgd20")
-    attack = PGD(args, model=model)
+    attack = PGD(model=model)
     pgd20_acc, _ = pgd(model, dataset.test_loader, attack)
     out(f"PGD-20: {pgd20_acc}")
 
     args.attack_iters = 1
-    args.pgd_alpha = 10
+    args.pgd_alpha = args.epsilon
     out("Test fgsm")
-    attack = PGD(args, model=model)
+    attack = PGD(model=model)
     fgsm_acc, _ = pgd(model, dataset.test_loader, attack)
 
     out("=" * 70)
@@ -97,22 +104,39 @@ def eval(model, args, dataset, logger=None):
     x_test = torch.cat(l, 0)
     l = [y for (x, y) in dataset.test_loader]
     y_test = torch.cat(l, 0)
-    epsilon = 8 / 255.0
-    adversary = AutoAttack(model, norm="Linf", eps=epsilon, version="standard")
-    adversary.run_standard_evaluation(x_test, y_test, bs=256)
+    epsilon = args.epsilon / 255.0
+    adversary = AutoAttack(
+        model, norm="L" + Configurator().norm[1:], eps=epsilon, version="standard"
+    )
+    adversary.run_standard_evaluation(x_test, y_test, bs=args.batch_size)
+    args.pgd_alpha = pgd_alpha
 
 
 def main():
     args = get_args()
-    args.mean = torch.tensor((0.4914, 0.4822, 0.4465)).view(3, 1, 1).cuda()
-    args.std = torch.tensor((0.2471, 0.2435, 0.2616)).view(3, 1, 1).cuda()
-    dataset = get_dataset(args)
+    dataset = get_dataset(args.dataset)
     args.mean = dataset.mean
     args.std = dataset.std
     args.dataset = dataset
-    model = get_network(args)
-    model.load_state_dict(torch.load(args.checkpoint)["state_dict"])
-    eval(model, args, dataset)
+    model = get_network(args.model)
+
+    if args.checkpoint.endswith("pth"):
+        model.load_state_dict(torch.load(args.checkpoint)["state_dict"])
+        eval(model, args, dataset)
+    else:
+        print("Best:")
+        model.load_state_dict(
+            torch.load(args.checkpoint + "/model_best.pth")["state_dict"]
+        )
+        eval(model, args, dataset)
+
+
+        print("=" * 70)
+        print("Last:")
+        model.load_state_dict(
+            torch.load(args.checkpoint + "/model_last.pth")["state_dict"]
+        )
+        eval(model, args, dataset)
 
 
 if __name__ == "__main__":
