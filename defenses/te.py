@@ -66,23 +66,21 @@ class TE(Defense):
         return _inner_loss_fn, _outer_loss_fn
 
     def train(self, data, label):
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
-
         indices = self.sampler.indices[
             self.iter * self.batch_size : (self.iter + 1) * self.batch_size
         ]
         zcomp = self.z[indices]
         inner_loss_fn, outer_loss_fn = self.te_loss(zcomp)
 
-        is_model_training = self.model.training
-        self.model.eval()
         adv_data = self.attack.perturb(
             data, label, loss_fn=inner_loss_fn, init_mode=self.init_mode
         ).detach()
-        if is_model_training:
-            self.model.train()
+
         adv_output = self.model(adv_data)
+
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
+
         adv_loss = outer_loss_fn(adv_output, label, output)
 
         self.outputs[indices] = adv_output.data.clone().type_as(self.outputs)
@@ -107,17 +105,14 @@ class TE(Defense):
         self.iter = 0
 
     def test(self, data, label, test_attack=None):
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
-
-        is_model_training = self.model.training
-        self.model.eval()
         adv_data = test_attack.perturb(
             data, label, loss_fn=self.inner_loss_fn, init_mode=self.init_mode
         ).detach()
-        if is_model_training:
-            self.model.train()
         adv_output = self.model(adv_data)
+
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
+
         adv_loss = self.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss

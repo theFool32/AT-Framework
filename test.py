@@ -122,6 +122,7 @@ def main():
 
     if args.checkpoint.endswith("pth"):
         model.load_state_dict(torch.load(args.checkpoint)["state_dict"])
+        # model.basic_net.module.load_state_dict(torch.load(args.checkpoint))
         eval(model, args, dataset)
     else:
         print("Best:")

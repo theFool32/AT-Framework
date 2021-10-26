@@ -29,6 +29,7 @@ def output(filename):
     best = [f"{v:.2f}" for v in best]
     last = [f"{v:.2f}" for v in last]
 
+    print("| | ", end="")
     for i in range(len(best)):
         print(best[i], end=" | ")
         print(last[i], end=" |  | ")

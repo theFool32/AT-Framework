@@ -21,17 +21,14 @@ class AT(Defense):
         self.init_mode = "pgd"
 
     def train(self, data, label):
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
-
-        is_model_training = self.model.training
-        self.model.eval()
         adv_data = self.attack.perturb(
             data, label, loss_fn=self.inner_loss_fn, init_mode=self.init_mode
         ).detach()
-        if is_model_training:
-            self.model.train()
         adv_output = self.model(adv_data)
+
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
+
         adv_loss = self.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss

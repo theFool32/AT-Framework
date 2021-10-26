@@ -96,11 +96,6 @@ class AWP(Defense):
         self.defense = inner_defense
 
     def train(self, data, label):
-        output = self.model(data)
-        loss = F.cross_entropy(output, label)
-
-        is_model_training = self.model.training
-        # self.model.eval()
         adv_data = self.attack.perturb(
             data,
             label,
@@ -108,14 +103,14 @@ class AWP(Defense):
             init_mode=self.defense.init_mode,
         ).detach()
 
-        if is_model_training:
-            self.model.train()
-
         diff = self.awp.calc_awp(adv_data, label)
         self.awp.perturb(diff)
 
-
         adv_output = self.model(adv_data)
+
+        output = self.model(data)
+        loss = F.cross_entropy(output, label)
+
         adv_loss = self.defense.outer_loss_fn(adv_output, label, output)
 
         total_loss = adv_loss
@@ -124,7 +119,9 @@ class AWP(Defense):
             # Configurator().scaler.scale(total_loss).backward()
             # Configurator().scaler.step(Configurator().opt)
             # Configurator().scaler.update()
-            with Configurator().amp.scale_loss(total_loss, Configurator().opt) as scaled_loss:
+            with Configurator().amp.scale_loss(
+                total_loss, Configurator().opt
+            ) as scaled_loss:
                 scaled_loss.backward()
             Configurator().opt.step()
         else:
