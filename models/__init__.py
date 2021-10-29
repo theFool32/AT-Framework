@@ -30,7 +30,7 @@ class ModelWrap(nn.Module):
                 return self.basic_net((inputs - self.mean) / self.std)
 
 
-def get_network(model_name):
+def get_network(model_name, mean=None, std=None):
     config = Configurator()
     if model_name == "PreActResNet18":
         model = PreActResNet18(num_classes=config.dataset.num_classes)
@@ -41,4 +41,7 @@ def get_network(model_name):
     else:
         raise NotImplementedError(f"Model not implemented: {model_name}")
 
-    return ModelWrap(model.cuda(), config.mean, config.std).cuda()
+    mean = mean if mean is not None else config.mean
+    std = std if std is not None else config.std
+
+    return ModelWrap(model.cuda(), mean, std).cuda()

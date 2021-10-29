@@ -98,7 +98,7 @@ def main():
         from apex import amp
 
         model, opt = amp.initialize(
-            model, opt, opt_level="O1", loss_scale=1.0, verbosity=False
+            model, opt, opt_level="O1", verbosity=False
         )
         args.amp = amp
 

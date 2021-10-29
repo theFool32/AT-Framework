@@ -7,6 +7,7 @@ from .awp import AWP
 from .swa import SWA
 from .no_defense import NoDefense
 from .te import TE
+from .rslad import RSLAD
 from utils import Configurator
 
 defense_map = {
@@ -17,6 +18,7 @@ defense_map = {
     "swa": SWA,
     "none": NoDefense,
     "te": TE,
+    "rslad": RSLAD,
 }
 
 

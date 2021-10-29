@@ -26,7 +26,7 @@ def attack_pgd(
     loss_fn=None,
     init_mode="pgd",
 ):
-    max_loss = torch.zeros_like(y)
+    max_loss = torch.zeros(y.size(0), device=y.device)
     max_delta = torch.zeros_like(X)
     init_mode = init_mode.lower()
     if loss_fn is not None:
