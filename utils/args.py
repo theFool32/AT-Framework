@@ -2,8 +2,6 @@ import argparse
 import time
 
 from .configurator import Configurator
-from defenses import get_defense_configuration
-from datasets import get_dataset_configuration
 
 base_config = {
     "log_step": 100,
@@ -21,6 +19,8 @@ base_config = {
 
 
 def get_configuration(config_name: str):
+    from defenses import get_defense_configuration
+    from datasets import get_dataset_configuration
     dataset, lp, defense = config_name.split(":")
 
     dataset_config = get_dataset_configuration(dataset)[lp]

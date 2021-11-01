@@ -8,7 +8,6 @@ from torch.nn import functional as F
 
 from .base import Defense
 from models import get_network
-from models.wideresnet import WideResNet34
 from utils import Configurator
 from losses import get_loss_fn
 

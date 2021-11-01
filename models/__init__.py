@@ -6,7 +6,6 @@ from torch import nn
 from .resnet import *
 from .preactresnet import *
 from .wideresnet import *
-from utils import Configurator
 
 
 class ModelWrap(nn.Module):
@@ -31,6 +30,7 @@ class ModelWrap(nn.Module):
 
 
 def get_network(model_name, mean=None, std=None):
+    from utils import Configurator
     config = Configurator()
     if model_name == "PreActResNet18":
         model = PreActResNet18(num_classes=config.dataset.num_classes)
